@@ -17,6 +17,7 @@ namespace ProjektarbeteButik
 {
     public partial class MainWindow : Window
     {
+        public Thickness spacing = new Thickness(5);
         public MainWindow()
         {
             InitializeComponent();
@@ -27,8 +28,8 @@ namespace ProjektarbeteButik
         {
             // Window options
             Title = "GUI App";
-            Width = 400;
-            Height = 300;
+            Width = 600;
+            Height = 800;
             WindowStartupLocation = WindowStartupLocation.CenterScreen;
 
             // Scrolling
@@ -37,11 +38,31 @@ namespace ProjektarbeteButik
             Content = root;
 
             // Main grid
-            Grid grid = new Grid();
-            root.Content = grid;
-            grid.Margin = new Thickness(5);
-            grid.RowDefinitions.Add(new RowDefinition());
-            grid.ColumnDefinitions.Add(new ColumnDefinition());
+            Grid mainGrid = new Grid();
+            root.Content = mainGrid;
+            mainGrid.Margin = spacing;
+            mainGrid.RowDefinitions.Add(new RowDefinition());
+            mainGrid.RowDefinitions.Add(new RowDefinition());
+            mainGrid.ColumnDefinitions.Add(new ColumnDefinition());
+            mainGrid.ColumnDefinitions.Add(new ColumnDefinition());
+
+            StackPanel shopInventory = new StackPanel
+            {
+                Margin = spacing               
+                
+            };
+            mainGrid.Children.Add(shopInventory);
+            Grid.SetColumn(shopInventory, 0);
+            Grid.SetRow(shopInventory, 0);
+            Grid.SetRowSpan(shopInventory, 2);
+
+            Label inventoryLabel = new Label
+            {
+                Content = "Shop Inventory",
+                HorizontalAlignment = HorizontalAlignment.Center,
+                FontSize = 18
+            };
+            shopInventory.Children.Add(inventoryLabel);
         }
     }
 }
