@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Globalization;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -14,21 +16,23 @@ using System.Windows.Navigation;
 using System.Windows.Shapes;
 
 namespace ProjektarbeteButik
-{
+{    
     public class Product
     {
         public string Name;
         public string Description;
         public decimal Price;
-        //Picture here, or path to picture??
+        public string PicturePath;
     }
     public partial class MainWindow : Window
-    {
+    {        
         public Thickness spacing = new Thickness(5);
         public StackPanel shopInventoryPanel;
+        public List<Product> productsList = new List<Product>();
 
         public MainWindow()
         {
+            CultureInfo.CurrentCulture = CultureInfo.InvariantCulture;
             InitializeComponent();
             Start();
         }
@@ -36,7 +40,7 @@ namespace ProjektarbeteButik
         private void Start()
         {
             // Window options
-            Title = "GUI App";
+            Title = "The Wonderful Items Shoppe";
             Width = 600;
             Height = 800;
             WindowStartupLocation = WindowStartupLocation.CenterScreen;
@@ -181,59 +185,71 @@ namespace ProjektarbeteButik
 
         public void AddProducts()
         {
-            //read from CSV
-            //For each item: 
-            //Create horizontal stackpanel with Picture, name, descrip, prize & "Add to cart button"
-            Grid productGrid = new Grid();
-            productGrid.RowDefinitions.Add(new RowDefinition());
-            productGrid.RowDefinitions.Add(new RowDefinition());
-            productGrid.ColumnDefinitions.Add(new ColumnDefinition());
-            productGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
-            productGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
-            shopInventoryPanel.Children.Add(productGrid);
-            Grid.SetColumn(productGrid, 0);
-            Grid.SetRow(productGrid, 1);
-
-            Button addToCart = new Button
+            string[] products = File.ReadAllLines("ShopInventory.csv");
+            foreach (string s in products)
             {
-                Content = "Add To Cart",
-                Margin = spacing,
-                Padding = spacing
-            };
-            productGrid.Children.Add(addToCart);
-            Grid.SetRow(addToCart, 0);
-            Grid.SetColumn(addToCart, 2);
+                Grid productGrid = new Grid();
+                productGrid.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
+                productGrid.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
+                productGrid.ColumnDefinitions.Add(new ColumnDefinition());
+                productGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
+                productGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
+                shopInventoryPanel.Children.Add(productGrid);
+                Grid.SetColumn(productGrid, 0);
+                Grid.SetRow(productGrid, 1);
 
-            Label productLabel = new Label
-            {
-                Content = "Dodo-Bird",
-                FontSize = 12,
-            };
-            productGrid.Children.Add(productLabel);
-            Grid.SetRow(productLabel, 0);
-            Grid.SetColumn(productLabel, 0);
+                var productProperties = s.Split(',');
+                Product p = new Product
+                {
+                    Name = productProperties[0],
+                    Description = productProperties[1],
+                    Price = decimal.Parse(productProperties[2]),
+                    PicturePath = productProperties[3]
+                };
+                productsList.Add(p);
 
-            TextBox priceBox = new TextBox
-            {
-                Text = "Price",
-                FontSize = 12,
-                IsReadOnly = true,
-            };
-            productGrid.Children.Add(priceBox);
-            Grid.SetRow(priceBox, 1);
-            Grid.SetColumn(priceBox, 2);
+                Button addToCart = new Button
+                {
+                    Content = "Add To Cart",
+                    Margin = spacing,
+                    Padding = spacing,
+                    Tag = p
+                };
+                productGrid.Children.Add(addToCart);
+                Grid.SetRow(addToCart, 0);
+                Grid.SetColumn(addToCart, 2);
+                addToCart.Click += AddToCart_Click;
 
-            Image productImage = CreateImage(@"Images\exampleimage2.webp");
-            var productImageResized = resizeImage(productImage, new Size(50, 50));
-            productImage.Stretch = Stretch.Fill;
-            productGrid.Children.Add(productImage);
-            Grid.SetRow(productImage, 1);
-            Grid.SetColumn(productImage, 0);
-        }        
+                Label productLabel = new Label
+                {
+                    Content = p.Name,
+                    FontSize = 12,
+                };
+                productGrid.Children.Add(productLabel);
+                Grid.SetRow(productLabel, 0);
+                Grid.SetColumn(productLabel, 0);
 
-        public static Image resizeImage(Image imgToResize, Size size)
+                Label priceLabel = new Label
+                {
+                    Margin = spacing,
+                    Content = "$" + p.Price,
+                    FontSize = 12
+                };
+                productGrid.Children.Add(priceLabel);
+                Grid.SetRow(priceLabel, 1);
+                Grid.SetColumn(priceLabel, 2);
+
+                Image productImage = CreateImage(p.PicturePath);
+                productImage.Stretch = Stretch.Fill;
+                productGrid.Children.Add(productImage);
+                Grid.SetRow(productImage, 1);
+                Grid.SetColumn(productImage, 0);     
+            }
+        }
+
+        private void AddToCart_Click(object sender, RoutedEventArgs e)
         {
-            return (Image)(new Bitmap(imgToResize, size));
+            throw new NotImplementedException();
         }
 
         private Image CreateImage(string filePath)
@@ -241,26 +257,16 @@ namespace ProjektarbeteButik
             ImageSource source = new BitmapImage(new Uri(filePath, UriKind.Relative));
             Image image = new Image
             {
+                Margin = spacing,
                 Source = source,
-                HorizontalAlignment = HorizontalAlignment.Center,
-                VerticalAlignment = VerticalAlignment.Center,
-                Margin = new Thickness(5),
+                HorizontalAlignment = HorizontalAlignment.Left,
+                VerticalAlignment = VerticalAlignment.Center,                
+                MaxHeight = 50,
+                MaxWidth = 50
             };
             // A small rendering tweak to ensure maximum visual appeal.
             RenderOptions.SetBitmapScalingMode(image, BitmapScalingMode.HighQuality);
             return image;
-        }
-    }
-
-    internal class Bitmap : Image
-    {
-        private Image imgToResize;
-        private Size size;
-
-        public Bitmap(Image imgToResize, Size size)
-        {
-            this.imgToResize = imgToResize;
-            this.size = size;
         }
     }
 }
