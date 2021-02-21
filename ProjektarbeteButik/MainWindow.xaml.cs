@@ -16,7 +16,7 @@ using System.Windows.Navigation;
 using System.Windows.Shapes;
 
 namespace ProjektarbeteButik
-{    
+{
     public class Product
     {
         public string Name;
@@ -25,10 +25,17 @@ namespace ProjektarbeteButik
         public string PicturePath;
     }
     public partial class MainWindow : Window
-    {        
+    {
         public Thickness spacing = new Thickness(5);
         public StackPanel shopInventoryPanel;
+        public StackPanel cartInventoryPanel;
+        public decimal totalCost;
+        Label cartSubTotalLabel;
         public List<Product> productsList = new List<Product>();
+        public static Dictionary<Product, int> shoppingCart = new Dictionary<Product, int>();
+        public Dictionary<string, string> discountCodes = new Dictionary<string, string>();
+        public TextBox couponTextBox;
+        public const string CartFilePath = @"C:\Windows\Temp\Cart.csv";
 
         public MainWindow()
         {
@@ -76,7 +83,10 @@ namespace ProjektarbeteButik
             Grid checkOutGrid = CreateCheckOutGrid();
             mainGrid.Children.Add(checkOutGrid);
             Grid.SetColumn(checkOutGrid, 1);
-            Grid.SetRow(checkOutGrid, 1);            
+            Grid.SetRow(checkOutGrid, 1);
+
+            LoadCart();
+            UpdateCart();
         }
 
         public StackPanel CreateShopInventoryPanel()
@@ -105,19 +115,11 @@ namespace ProjektarbeteButik
         {
             Grid shoppingCartGrid = new Grid();
             shoppingCartGrid.Margin = spacing;
+            shoppingCartGrid.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
             shoppingCartGrid.RowDefinitions.Add(new RowDefinition());
             shoppingCartGrid.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
             shoppingCartGrid.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
             shoppingCartGrid.ColumnDefinitions.Add(new ColumnDefinition());
-
-            StackPanel cartInventoryPanel = new StackPanel
-            {
-                Margin = spacing,
-                Orientation = Orientation.Vertical,
-            };
-            shoppingCartGrid.Children.Add(cartInventoryPanel);
-            Grid.SetColumn(cartInventoryPanel, 0);
-            Grid.SetRow(cartInventoryPanel, 0);
 
             Label cartInventoryLabel = new Label
             {
@@ -126,7 +128,16 @@ namespace ProjektarbeteButik
                 HorizontalAlignment = HorizontalAlignment.Center,
                 FontSize = 18
             };
-            cartInventoryPanel.Children.Add(cartInventoryLabel);
+            shoppingCartGrid.Children.Add(cartInventoryLabel);
+
+            cartInventoryPanel = new StackPanel
+            {
+                Margin = spacing,
+                Orientation = Orientation.Vertical,
+            };
+            shoppingCartGrid.Children.Add(cartInventoryPanel);
+            Grid.SetColumn(cartInventoryPanel, 0);
+            Grid.SetRow(cartInventoryPanel, 1);
 
             Button clearCartButton = new Button
             {
@@ -135,21 +146,23 @@ namespace ProjektarbeteButik
             };
             shoppingCartGrid.Children.Add(clearCartButton);
             Grid.SetColumn(clearCartButton, 0);
-            Grid.SetRow(clearCartButton, 1);
+            Grid.SetRow(clearCartButton, 2);
+            clearCartButton.Click += ClearCart;
 
-            Label cartTotalLabel = new Label
+            cartSubTotalLabel = new Label
             {
                 Margin = spacing,
-                Content = "Total: 1000 spänn",
+                Content = "",
                 HorizontalAlignment = HorizontalAlignment.Left,
                 FontSize = 12
             };
-            shoppingCartGrid.Children.Add(cartTotalLabel);
-            Grid.SetColumn(cartTotalLabel, 0);
-            Grid.SetRow(cartTotalLabel, 2);
+            shoppingCartGrid.Children.Add(cartSubTotalLabel);
+            Grid.SetColumn(cartSubTotalLabel, 0);
+            Grid.SetRow(cartSubTotalLabel, 3);
 
             return shoppingCartGrid;
         }
+
         public Grid CreateCheckOutGrid()
         {
             Grid checkOutGrid = new Grid();
@@ -159,16 +172,39 @@ namespace ProjektarbeteButik
             checkOutGrid.RowDefinitions.Add(new RowDefinition());
             checkOutGrid.ColumnDefinitions.Add(new ColumnDefinition());
             checkOutGrid.ColumnDefinitions.Add(new ColumnDefinition());
+            checkOutGrid.ColumnDefinitions.Add(new ColumnDefinition());
 
-            TextBox couponTextBox = new TextBox
+            couponTextBox = new TextBox
             {
                 Margin = spacing,
-                Text = "(Optional: Enter Coupon Code here)"
+                Text = "Optional: Enter Coupon Code here..."
             };
             checkOutGrid.Children.Add(couponTextBox);
             Grid.SetColumn(couponTextBox, 0);
             Grid.SetRow(couponTextBox, 0);
-            Grid.SetColumnSpan(couponTextBox, 2);
+            Grid.SetColumnSpan(couponTextBox, 3);
+
+            Button applyDiscountCode = new Button
+            {
+                Margin = spacing,
+                Content = "Apply Discount Code",
+                FontSize = 10,
+            };
+            checkOutGrid.Children.Add(applyDiscountCode);
+            Grid.SetColumn(applyDiscountCode, 0);
+            Grid.SetRow(applyDiscountCode, 1);
+            Grid.SetColumnSpan(applyDiscountCode, 3);
+            applyDiscountCode.Click += ApplyDiscountCode_Click;
+
+            Button saveCart = new Button
+            {
+                Margin = spacing,
+                Content = "Save Cart",
+            };
+            checkOutGrid.Children.Add(saveCart);
+            Grid.SetColumn(saveCart, 0);
+            Grid.SetRow(saveCart, 1);
+            saveCart.Click += SaveCart_Click;
 
             Button checkOutButton = new Button
             {
@@ -177,12 +213,16 @@ namespace ProjektarbeteButik
                 FontSize = 14
             };
             checkOutGrid.Children.Add(checkOutButton);
-            Grid.SetColumn(checkOutButton, 1);
+            Grid.SetColumn(checkOutButton, 2);
             Grid.SetRow(checkOutButton, 1);
 
             return checkOutGrid;
         }
 
+        private void ApplyDiscountCode_Click(object sender, RoutedEventArgs e)
+        {
+            
+        }
         public void AddProducts()
         {
             string[] products = File.ReadAllLines("ShopInventory.csv");
@@ -195,8 +235,6 @@ namespace ProjektarbeteButik
                 productGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
                 productGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
                 shopInventoryPanel.Children.Add(productGrid);
-                Grid.SetColumn(productGrid, 0);
-                Grid.SetRow(productGrid, 1);
 
                 var productProperties = s.Split(',');
                 Product p = new Product
@@ -243,15 +281,95 @@ namespace ProjektarbeteButik
                 productImage.Stretch = Stretch.Fill;
                 productGrid.Children.Add(productImage);
                 Grid.SetRow(productImage, 1);
-                Grid.SetColumn(productImage, 0);     
+                Grid.SetColumn(productImage, 0);
             }
         }
 
         private void AddToCart_Click(object sender, RoutedEventArgs e)
         {
-            throw new NotImplementedException();
+            Button button = (Button)sender;
+            var product = (Product)button.Tag;
+
+            if (shoppingCart.ContainsKey(product))
+            {
+                shoppingCart[product] += 1;
+            }
+            else
+            {
+                shoppingCart[product] = 1;
+            }
+            UpdateCart();
         }
 
+        public void UpdateCart()
+        {
+            totalCost = 0;
+            cartSubTotalLabel.Content = "";
+            cartInventoryPanel.Children.Clear();
+            foreach (var item in shoppingCart)
+            {
+                totalCost += item.Key.Price * item.Value;
+                cartSubTotalLabel.Content = "Total: $" + totalCost;
+                Grid itemGrid = new Grid();
+                itemGrid.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
+                itemGrid.ColumnDefinitions.Add(new ColumnDefinition());
+                itemGrid.ColumnDefinitions.Add(new ColumnDefinition());
+                itemGrid.ColumnDefinitions.Add(new ColumnDefinition());
+                itemGrid.ColumnDefinitions.Add(new ColumnDefinition());
+                cartInventoryPanel.Children.Add(itemGrid);
+
+                Label itemName = new Label
+                {
+                    Margin = spacing,
+                    Content = item.Key.Name,
+                    FontSize = 12
+                };
+                itemGrid.Children.Add(itemName);
+                Grid.SetColumn(itemName, 0);
+
+                Label itemPrice = new Label
+                {
+                    Margin = spacing,
+                    Content = "$" + item.Key.Price * item.Value,
+                    FontSize = 12
+                };
+                itemGrid.Children.Add(itemPrice);
+                Grid.SetColumn(itemPrice, 1);
+
+                Label itemAmount = new Label
+                {
+                    Margin = spacing,
+                    Content = item.Value,
+                    FontSize = 12
+                };
+                itemGrid.Children.Add(itemAmount);
+                Grid.SetColumn(itemAmount, 2);
+
+                Button deleteFromCart = new Button
+                {
+                    Content = "Delete",
+                    Margin = spacing,
+                    Padding = spacing,
+                    Tag = item.Key
+                };
+                itemGrid.Children.Add(deleteFromCart);
+                Grid.SetColumn(deleteFromCart, 3);
+                deleteFromCart.Click += DeleteFromCart;
+            }
+        }
+        private void DeleteFromCart(object sender, RoutedEventArgs e)
+        {
+            Button button = (Button)sender;
+            var product = (Product)button.Tag;
+            shoppingCart.Remove(product);
+            UpdateCart();
+        }
+        private void ClearCart(object sender, RoutedEventArgs e)
+        {
+            shoppingCart.Clear();
+            File.Delete(CartFilePath);
+            UpdateCart();
+        }
         private Image CreateImage(string filePath)
         {
             ImageSource source = new BitmapImage(new Uri(filePath, UriKind.Relative));
@@ -260,13 +378,53 @@ namespace ProjektarbeteButik
                 Margin = spacing,
                 Source = source,
                 HorizontalAlignment = HorizontalAlignment.Left,
-                VerticalAlignment = VerticalAlignment.Center,                
+                VerticalAlignment = VerticalAlignment.Center,
                 MaxHeight = 50,
                 MaxWidth = 50
             };
             // A small rendering tweak to ensure maximum visual appeal.
             RenderOptions.SetBitmapScalingMode(image, BitmapScalingMode.HighQuality);
             return image;
+        }
+        public Dictionary<Product, int> LoadCart()
+        {
+            if (!File.Exists(CartFilePath))
+            {
+                MessageBox.Show("No cart to load");
+            }
+            else
+            {
+                string[] lines = File.ReadAllLines(CartFilePath);
+                foreach (string line in lines)
+                {
+                    string[] parts = line.Split(',');
+                    string name = parts[0];
+                    int amount = int.Parse(parts[1]);
+
+                    Product current = null;
+                    foreach (Product p in productsList)
+                    {
+                        if (p.Name == name)
+                        {
+                            current = p;
+                        }
+                    }
+                    shoppingCart[current] = amount;
+                }
+            }
+            return shoppingCart;
+        }
+        private void SaveCart_Click(object sender, RoutedEventArgs e)
+        {
+            List<string> linesList = new List<string>();
+            foreach (KeyValuePair<Product, int> pair in shoppingCart)
+            {
+                Product p = pair.Key;
+                int amount = pair.Value;
+                linesList.Add(p.Name + "," + amount);
+            }
+            File.WriteAllLines(CartFilePath, linesList);
+            MessageBox.Show("Your Cart Was Saved");
         }
     }
 }
