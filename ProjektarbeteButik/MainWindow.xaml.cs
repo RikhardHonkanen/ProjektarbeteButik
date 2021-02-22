@@ -17,6 +17,13 @@ using System.Windows.Shapes;
 
 namespace ProjektarbeteButik
 {
+    public class Receipt
+    {
+        public string Name { get; set; }
+        public decimal Price { get; set; }
+        public decimal TotalPrice { get; set; }
+        public int Amount { get; set; }
+    }
     public class Product
     {
         public string Name;
@@ -35,7 +42,9 @@ namespace ProjektarbeteButik
         public static Dictionary<Product, int> shoppingCart = new Dictionary<Product, int>();
         public Dictionary<string, string> discountCodes = new Dictionary<string, string>();
         public TextBox couponTextBox;
-        public const string CartFilePath = @"C:\Windows\Temp\Cart.csv";
+        public const string CartFilePath = @"C:\Windows\Temp\TheExcellentCart.csv";
+        public Grid checkOutGrid;
+        public DataGrid dataGrid;
 
         public MainWindow()
         {
@@ -48,7 +57,7 @@ namespace ProjektarbeteButik
         {
             // Window options
             Title = "The Wonderful Items Shoppe";
-            Width = 600;
+            Width = 900;
             Height = 800;
             WindowStartupLocation = WindowStartupLocation.CenterScreen;
 
@@ -95,7 +104,7 @@ namespace ProjektarbeteButik
             {
                 Margin = spacing,
                 Orientation = Orientation.Vertical,
-                Background = Brushes.OldLace
+                Background = Brushes.OldLace,
             };
 
             Label shopInventoryLabel = new Label
@@ -165,7 +174,7 @@ namespace ProjektarbeteButik
 
         public Grid CreateCheckOutGrid()
         {
-            Grid checkOutGrid = new Grid();
+            checkOutGrid = new Grid();
             checkOutGrid.Margin = spacing;
             checkOutGrid.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
             checkOutGrid.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
@@ -193,8 +202,6 @@ namespace ProjektarbeteButik
             Grid.SetColumn(couponTextBox, 2);
             Grid.SetRow(couponTextBox, 0);
 
-            //We could get rid of this button, and just have the "BUY" button display "Coupon code XXX123 - 25% off, proceed?" (Y/N),
-            //or "Invalid Coupon code, proceed without discount?" (Y/N)
             Button applyDiscountCode = new Button
             {
                 Margin = spacing,
@@ -205,18 +212,7 @@ namespace ProjektarbeteButik
             Grid.SetColumn(applyDiscountCode, 0);
             Grid.SetRow(applyDiscountCode, 1);
             Grid.SetColumnSpan(applyDiscountCode, 2);
-            applyDiscountCode.Click += ApplyDiscountCode_Click; 
-
-            //We could also get rid of this button, and just have the cart save automatically whenever it updates
-            Button saveCart = new Button
-            {
-                Margin = spacing,
-                Content = "Save Cart",
-            };
-            checkOutGrid.Children.Add(saveCart);
-            Grid.SetColumn(saveCart, 0);
-            Grid.SetRow(saveCart, 1);
-            saveCart.Click += SaveCart;
+            applyDiscountCode.Click += ApplyDiscountCode_Click;
 
             Button checkOutButton = new Button
             {
@@ -227,12 +223,60 @@ namespace ProjektarbeteButik
             checkOutGrid.Children.Add(checkOutButton);
             Grid.SetColumn(checkOutButton, 2);
             Grid.SetRow(checkOutButton, 1);
+            checkOutButton.Click += CheckOutButton_Click;
 
             return checkOutGrid;
         }
-        
+
+        private void CheckOutButton_Click(object sender, RoutedEventArgs e)
+        {
+            dataGrid = new DataGrid
+            {
+                AutoGenerateColumns = true,
+            };
+            checkOutGrid.Children.Add(dataGrid);
+            Grid.SetRow(dataGrid, 2);
+            Grid.SetColumn(dataGrid, 0);
+            Grid.SetColumnSpan(dataGrid, 3);
+            dataGrid.RowBackground = Brushes.OldLace;
+            dataGrid.Foreground = Brushes.Black;
+            dataGrid.AlternatingRowBackground = Brushes.Gray;
+
+            DataGridTextColumn c1 = new DataGridTextColumn();
+            c1.Header = "Name";
+            c1.Binding = new Binding("Name");
+            c1.Width = 110;
+            dataGrid.Columns.Add(c1);
+            DataGridTextColumn c2 = new DataGridTextColumn();
+            c2.Header = "Unit Price";
+            c2.Width = 110;
+            c2.Binding = new Binding("Price");
+            dataGrid.Columns.Add(c2);
+            DataGridTextColumn c3 = new DataGridTextColumn();
+            c3.Header = "Total Price";
+            c3.Width = 110;
+            c3.Binding = new Binding("TotalPrice");
+            dataGrid.Columns.Add(c3);
+            DataGridTextColumn c4 = new DataGridTextColumn();
+            c4.Header = "Amount";
+            c4.Width = 120;
+            c4.Binding = new Binding("Amount");
+            dataGrid.Columns.Add(c4);
+
+            foreach (KeyValuePair<Product, int> pair in shoppingCart)
+            {
+                Receipt kvitto = new Receipt
+                {
+                    Name = pair.Key.Name,
+                    Amount = pair.Value,
+                    Price = pair.Key.Price,
+                    TotalPrice = pair.Value * pair.Key.Price,
+                };
+                dataGrid.Items.Add(kvitto);
+            }
+        }
+
         public void AddProducts()
-        //We still need to display item description somewhere (included in .csv-file)
         {
             string[] products = File.ReadAllLines("ShopInventory.csv");
             foreach (string s in products)
@@ -240,11 +284,13 @@ namespace ProjektarbeteButik
                 Grid productGrid = new Grid();
                 productGrid.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
                 productGrid.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
-                productGrid.ColumnDefinitions.Add(new ColumnDefinition());
+                productGrid.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
                 productGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
+                productGrid.ColumnDefinitions.Add(new ColumnDefinition ());
+                productGrid.ColumnDefinitions.Add(new ColumnDefinition ());
                 productGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
                 shopInventoryPanel.Children.Add(productGrid);
-
+                
                 var productProperties = s.Split(',');
                 Product p = new Product
                 {
@@ -255,27 +301,33 @@ namespace ProjektarbeteButik
                 };
                 productsList.Add(p);
 
-                Button addToCart = new Button
-                {
-                    Content = "Add To Cart",
-                    Margin = spacing,
-                    Padding = spacing,
-                    Tag = p
-                };
-                productGrid.Children.Add(addToCart);
-                Grid.SetRow(addToCart, 0);
-                Grid.SetColumn(addToCart, 2);
-                addToCart.Click += AddToCart_Click;
-                addToCart.Click += SaveCart_Click;
+                Image productImage = CreateImage(p.PicturePath);
+                productImage.Stretch = Stretch.Fill;
+                productGrid.Children.Add(productImage);
+                Grid.SetRow(productImage, 0);
+                Grid.SetRowSpan(productImage, 2);
+                Grid.SetColumn(productImage, 0);
 
                 Label productLabel = new Label
                 {
                     Content = p.Name,
                     FontSize = 12,
+                    FontWeight = FontWeights.Bold,
                 };
                 productGrid.Children.Add(productLabel);
                 Grid.SetRow(productLabel, 0);
-                Grid.SetColumn(productLabel, 0);
+                Grid.SetColumn(productLabel, 1);
+                
+                Label productDescription = new Label
+                {
+                    Content = p.Description,
+                    FontSize = 12,
+                    FontWeight = FontWeights.Regular,
+                };
+                productGrid.Children.Add(productDescription);
+                Grid.SetRow(productDescription, 1);
+                Grid.SetColumn(productDescription, 1);
+                Grid.SetColumnSpan(productDescription, 2);
 
                 Label priceLabel = new Label
                 {
@@ -284,14 +336,20 @@ namespace ProjektarbeteButik
                     FontSize = 12
                 };
                 productGrid.Children.Add(priceLabel);
-                Grid.SetRow(priceLabel, 1);
-                Grid.SetColumn(priceLabel, 2);
+                Grid.SetRow(priceLabel, 0);
+                Grid.SetColumn(priceLabel, 3);
 
-                Image productImage = CreateImage(p.PicturePath);
-                productImage.Stretch = Stretch.Fill;
-                productGrid.Children.Add(productImage);
-                Grid.SetRow(productImage, 1);
-                Grid.SetColumn(productImage, 0);
+                Button addToCart = new Button
+                {
+                    Content = "Add To Cart",
+                    Margin = spacing,
+                    Padding = spacing,
+                    Tag = p
+                };
+                productGrid.Children.Add(addToCart);
+                Grid.SetRow(addToCart, 1);
+                Grid.SetColumn(addToCart, 3);
+                addToCart.Click += AddToCart;                
             }
         }
         private void AddToCart(object sender, RoutedEventArgs e)
@@ -308,6 +366,7 @@ namespace ProjektarbeteButik
                 shoppingCart[product] = 1;
             }
             UpdateCart();
+            SaveCart();
         }
         public void UpdateCart()
         {
@@ -363,7 +422,6 @@ namespace ProjektarbeteButik
                 itemGrid.Children.Add(deleteFromCart);
                 Grid.SetColumn(deleteFromCart, 3);
                 deleteFromCart.Click += DeleteFromCart;
-                deleteFromCart.Click += SaveCart_Click;
             }
         }
         private void DeleteFromCart(object sender, RoutedEventArgs e)
@@ -372,6 +430,7 @@ namespace ProjektarbeteButik
             var product = (Product)button.Tag;
             shoppingCart.Remove(product);
             UpdateCart();
+            SaveCart();
         }
         private void ClearCart(object sender, RoutedEventArgs e)
         {
@@ -380,15 +439,15 @@ namespace ProjektarbeteButik
             {
                 shoppingCart.Clear();
                 File.Delete(CartFilePath);
-                UpdateCart();    
+                UpdateCart();
+                SaveCart();
             }
         }        
         public Dictionary<Product, int> LoadCart()
         {
             if (!File.Exists(CartFilePath))
             {
-                //This pop-up gets annoying, do we need it?
-                //MessageBox.Show("No cart to load");
+                
             }
             else
             {
@@ -412,7 +471,7 @@ namespace ProjektarbeteButik
             }
             return shoppingCart;
         }
-        private void SaveCart(object sender, RoutedEventArgs e)
+        private void SaveCart()
         {
             List<string> linesList = new List<string>();
             foreach (KeyValuePair<Product, int> pair in shoppingCart)
@@ -439,9 +498,9 @@ namespace ProjektarbeteButik
                 MaxHeight = 50,
                 MaxWidth = 50
             };
-            // A small rendering tweak to ensure maximum visual appeal.
             RenderOptions.SetBitmapScalingMode(image, BitmapScalingMode.HighQuality);
             return image;
         }
     }
 }
+
