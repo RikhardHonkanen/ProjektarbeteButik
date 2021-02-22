@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
@@ -16,7 +16,7 @@ using System.Windows.Navigation;
 using System.Windows.Shapes;
 
 namespace ProjektarbeteButik
-{    
+{
     public class Product
     {
         public string Name;
@@ -25,14 +25,17 @@ namespace ProjektarbeteButik
         public string PicturePath;
     }
     public partial class MainWindow : Window
-    {        
+    {
         public Thickness spacing = new Thickness(5);
         public StackPanel shopInventoryPanel;
         public StackPanel cartInventoryPanel;
         public decimal totalCost;
-        Label cartSubTotalLabel;
+        public Label cartSubTotalLabel;
         public List<Product> productsList = new List<Product>();
-        public Dictionary<Product, int> shoppingCart = new Dictionary<Product, int>();
+        public static Dictionary<Product, int> shoppingCart = new Dictionary<Product, int>();
+        public Dictionary<string, string> discountCodes = new Dictionary<string, string>();
+        public TextBox couponTextBox;
+        public const string CartFilePath = @"C:\Windows\Temp\Cart.csv";
 
         public MainWindow()
         {
@@ -80,7 +83,10 @@ namespace ProjektarbeteButik
             Grid checkOutGrid = CreateCheckOutGrid();
             mainGrid.Children.Add(checkOutGrid);
             Grid.SetColumn(checkOutGrid, 1);
-            Grid.SetRow(checkOutGrid, 1);            
+            Grid.SetRow(checkOutGrid, 1);
+
+            LoadCart();
+            UpdateCart();
         }
 
         public StackPanel CreateShopInventoryPanel()
@@ -131,7 +137,7 @@ namespace ProjektarbeteButik
             };
             shoppingCartGrid.Children.Add(cartInventoryPanel);
             Grid.SetColumn(cartInventoryPanel, 0);
-            Grid.SetRow(cartInventoryPanel, 1);            
+            Grid.SetRow(cartInventoryPanel, 1);
 
             Button clearCartButton = new Button
             {
@@ -155,7 +161,7 @@ namespace ProjektarbeteButik
             Grid.SetRow(cartSubTotalLabel, 3);
 
             return shoppingCartGrid;
-        }        
+        }
 
         public Grid CreateCheckOutGrid()
         {
@@ -166,16 +172,51 @@ namespace ProjektarbeteButik
             checkOutGrid.RowDefinitions.Add(new RowDefinition());
             checkOutGrid.ColumnDefinitions.Add(new ColumnDefinition());
             checkOutGrid.ColumnDefinitions.Add(new ColumnDefinition());
+            checkOutGrid.ColumnDefinitions.Add(new ColumnDefinition());
 
-            TextBox couponTextBox = new TextBox
+            Label couponLabel = new Label
             {
                 Margin = spacing,
-                Text = "(Optional: Enter Coupon Code here)"
+                Content = "(Optional) Discount Coupon"
+            };
+            checkOutGrid.Children.Add(couponLabel);
+            Grid.SetColumn(couponLabel, 0);
+            Grid.SetRow(couponLabel, 0);
+            Grid.SetColumnSpan(couponLabel, 2);
+
+            couponTextBox = new TextBox
+            {
+                Margin = spacing,
+                TextAlignment = TextAlignment.Center
             };
             checkOutGrid.Children.Add(couponTextBox);
-            Grid.SetColumn(couponTextBox, 0);
+            Grid.SetColumn(couponTextBox, 2);
             Grid.SetRow(couponTextBox, 0);
-            Grid.SetColumnSpan(couponTextBox, 2);
+
+            //We could get rid of this button, and just have the "BUY" button display "Coupon code XXX123 - 25% off, proceed?" (Y/N),
+            //or "Invalid Coupon code, proceed without discount?" (Y/N)
+            Button applyDiscountCode = new Button
+            {
+                Margin = spacing,
+                Content = "Apply Discount Code",
+                FontSize = 10,
+            };
+            checkOutGrid.Children.Add(applyDiscountCode);
+            Grid.SetColumn(applyDiscountCode, 0);
+            Grid.SetRow(applyDiscountCode, 1);
+            Grid.SetColumnSpan(applyDiscountCode, 3);
+            applyDiscountCode.Click += ApplyDiscountCode_Click;
+
+            //We could also get rid of this button, and just have the cart save automatically whenever it updates
+            Button saveCart = new Button
+            {
+                Margin = spacing,
+                Content = "Save Cart",
+            };
+            checkOutGrid.Children.Add(saveCart);
+            Grid.SetColumn(saveCart, 0);
+            Grid.SetRow(saveCart, 1);
+            saveCart.Click += SaveCart;
 
             Button checkOutButton = new Button
             {
@@ -184,13 +225,14 @@ namespace ProjektarbeteButik
                 FontSize = 14
             };
             checkOutGrid.Children.Add(checkOutButton);
-            Grid.SetColumn(checkOutButton, 1);
+            Grid.SetColumn(checkOutButton, 2);
             Grid.SetRow(checkOutButton, 1);
 
             return checkOutGrid;
         }
-
+        
         public void AddProducts()
+        //We still need to display item description somewhere (included in .csv-file)
         {
             string[] products = File.ReadAllLines("ShopInventory.csv");
             foreach (string s in products)
@@ -223,7 +265,7 @@ namespace ProjektarbeteButik
                 productGrid.Children.Add(addToCart);
                 Grid.SetRow(addToCart, 0);
                 Grid.SetColumn(addToCart, 2);
-                addToCart.Click += AddToCart_Click;
+                addToCart.Click += AddToCart;
 
                 Label productLabel = new Label
                 {
@@ -248,11 +290,10 @@ namespace ProjektarbeteButik
                 productImage.Stretch = Stretch.Fill;
                 productGrid.Children.Add(productImage);
                 Grid.SetRow(productImage, 1);
-                Grid.SetColumn(productImage, 0);     
+                Grid.SetColumn(productImage, 0);
             }
         }
-
-        private void AddToCart_Click(object sender, RoutedEventArgs e)
+        private void AddToCart(object sender, RoutedEventArgs e)
         {
             Button button = (Button)sender;
             var product = (Product)button.Tag;
@@ -267,16 +308,15 @@ namespace ProjektarbeteButik
             }
             UpdateCart();
         }
-
         public void UpdateCart()
         {
             totalCost = 0;
             cartSubTotalLabel.Content = "";
             cartInventoryPanel.Children.Clear();
             foreach (var item in shoppingCart)
-            {                
+            {
                 totalCost += item.Key.Price * item.Value;
-                cartSubTotalLabel.Content = "Total: $" + totalCost;
+                cartSubTotalLabel.Content = "Subtotal: $" + totalCost;
                 Grid itemGrid = new Grid();
                 itemGrid.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
                 itemGrid.ColumnDefinitions.Add(new ColumnDefinition());
@@ -333,8 +373,58 @@ namespace ProjektarbeteButik
         }
         private void ClearCart(object sender, RoutedEventArgs e)
         {
-            shoppingCart.Clear();
-            UpdateCart();
+            MessageBoxResult result = MessageBox.Show("Clear Shopping Cart, Are You Sure?", "", MessageBoxButton.YesNo);
+            if (result == MessageBoxResult.Yes)
+            {
+                shoppingCart.Clear();
+                File.Delete(CartFilePath);
+                UpdateCart();    
+            }
+        }        
+        public Dictionary<Product, int> LoadCart()
+        {
+            if (!File.Exists(CartFilePath))
+            {
+                //This pop-up gets annoying, do we need it?
+                //MessageBox.Show("No cart to load");
+            }
+            else
+            {
+                string[] lines = File.ReadAllLines(CartFilePath);
+                foreach (string line in lines)
+                {
+                    string[] parts = line.Split(',');
+                    string name = parts[0];
+                    int amount = int.Parse(parts[1]);
+
+                    Product current = null;
+                    foreach (Product p in productsList)
+                    {
+                        if (p.Name == name)
+                        {
+                            current = p;
+                        }
+                    }
+                    shoppingCart[current] = amount;
+                }
+            }
+            return shoppingCart;
+        }
+        private void SaveCart(object sender, RoutedEventArgs e)
+        {
+            List<string> linesList = new List<string>();
+            foreach (KeyValuePair<Product, int> pair in shoppingCart)
+            {
+                Product p = pair.Key;
+                int amount = pair.Value;
+                linesList.Add(p.Name + "," + amount);
+            }
+            File.WriteAllLines(CartFilePath, linesList);
+            MessageBox.Show("Your Cart Was Saved");
+        }
+        private void ApplyDiscountCode_Click(object sender, RoutedEventArgs e)
+        {
+
         }
         private Image CreateImage(string filePath)
         {
@@ -344,7 +434,7 @@ namespace ProjektarbeteButik
                 Margin = spacing,
                 Source = source,
                 HorizontalAlignment = HorizontalAlignment.Left,
-                VerticalAlignment = VerticalAlignment.Center,                
+                VerticalAlignment = VerticalAlignment.Center,
                 MaxHeight = 50,
                 MaxWidth = 50
             };
