@@ -24,6 +24,13 @@ namespace ProjektarbeteButik
         public decimal Price;
         public string PicturePath;
     }
+    public class Receipt
+    {
+        public string Name { get; set; }
+        public decimal Price { get; set; }
+        public decimal TotalPrice { get; set; }
+        public int Amount { get; set; }
+    }
     public partial class MainWindow : Window
     {
         public Thickness spacing = new Thickness(5);
@@ -37,6 +44,8 @@ namespace ProjektarbeteButik
         public static Dictionary<Product, int> shoppingCart = new Dictionary<Product, int>();
         public TextBox couponTextBox;
         public const string CartFilePath = @"C:\Windows\Temp\TheExcellentCart.csv";
+        public Grid checkOutGrid;
+        public DataGrid receiptGrid;
 
         public MainWindow()
         {
@@ -49,7 +58,7 @@ namespace ProjektarbeteButik
         {
             // Window options
             Title = "The Wonderful Items Shoppe";
-            Width = 750;
+            Width = 900;
             Height = 800;
             WindowStartupLocation = WindowStartupLocation.CenterScreen;
 
@@ -177,7 +186,7 @@ namespace ProjektarbeteButik
 
         public Grid CreateCheckOutGrid()
         {
-            Grid checkOutGrid = new Grid();
+            checkOutGrid = new Grid();
             checkOutGrid.Margin = spacing;
             checkOutGrid.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
             checkOutGrid.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
@@ -226,10 +235,10 @@ namespace ProjektarbeteButik
             checkOutGrid.Children.Add(checkOutButton);
             Grid.SetColumn(checkOutButton, 2);
             Grid.SetRow(checkOutButton, 1);
+            checkOutButton.Click += CheckOut;
 
             return checkOutGrid;
         }
-        
         public void AddProducts()
         //We still need to display item description somewhere (included in .csv-file)
         {
@@ -459,6 +468,53 @@ namespace ProjektarbeteButik
             else
             {
                 MessageBox.Show("Code does not exist.");
+            }            
+        }
+        private void CheckOut(object sender, RoutedEventArgs e)
+        {
+            receiptGrid = new DataGrid
+            {
+                AutoGenerateColumns = true,
+            };
+            checkOutGrid.Children.Add(receiptGrid);
+            Grid.SetRow(receiptGrid, 2);
+            Grid.SetColumn(receiptGrid, 0);
+            Grid.SetColumnSpan(receiptGrid, 3);
+            receiptGrid.RowBackground = Brushes.OldLace;
+            receiptGrid.Foreground = Brushes.Black;
+            receiptGrid.AlternatingRowBackground = Brushes.Gray;
+
+            DataGridTextColumn c1 = new DataGridTextColumn();
+            c1.Header = "Name";
+            c1.Binding = new Binding("Name");
+            c1.Width = 110;
+            receiptGrid.Columns.Add(c1);
+            DataGridTextColumn c2 = new DataGridTextColumn();
+            c2.Header = "Unit Price";
+            c2.Width = 110;
+            c2.Binding = new Binding("Price");
+            receiptGrid.Columns.Add(c2);
+            DataGridTextColumn c3 = new DataGridTextColumn();
+            c3.Header = "Total Price";
+            c3.Width = 110;
+            c3.Binding = new Binding("TotalPrice");
+            receiptGrid.Columns.Add(c3);
+            DataGridTextColumn c4 = new DataGridTextColumn();
+            c4.Header = "Amount";
+            c4.Width = 120;
+            c4.Binding = new Binding("Amount");
+            receiptGrid.Columns.Add(c4);
+
+            foreach (KeyValuePair<Product, int> pair in shoppingCart)
+            {
+                Receipt kvitto = new Receipt
+                {
+                    Name = pair.Key.Name,
+                    Amount = pair.Value,
+                    Price = pair.Key.Price,
+                    TotalPrice = pair.Value * pair.Key.Price,
+                };
+                receiptGrid.Items.Add(kvitto);
             }
         }
         private Image CreateImage(string filePath)
