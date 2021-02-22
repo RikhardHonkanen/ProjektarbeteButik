@@ -188,23 +188,13 @@ namespace ProjektarbeteButik
             {
                 Margin = spacing,
                 Content = "Apply Discount Code",
-                FontSize = 10,
+                FontSize = 14,
             };
             checkOutGrid.Children.Add(applyDiscountCode);
             Grid.SetColumn(applyDiscountCode, 0);
             Grid.SetRow(applyDiscountCode, 1);
-            Grid.SetColumnSpan(applyDiscountCode, 3);
-            applyDiscountCode.Click += ApplyDiscountCode_Click;
-
-            Button saveCart = new Button
-            {
-                Margin = spacing,
-                Content = "Save Cart",
-            };
-            checkOutGrid.Children.Add(saveCart);
-            Grid.SetColumn(saveCart, 0);
-            Grid.SetRow(saveCart, 1);
-            saveCart.Click += SaveCart_Click;
+            Grid.SetColumnSpan(applyDiscountCode, 2);
+            applyDiscountCode.Click += ApplyDiscountCode_Click; 
 
             Button checkOutButton = new Button
             {
@@ -257,6 +247,7 @@ namespace ProjektarbeteButik
                 Grid.SetRow(addToCart, 0);
                 Grid.SetColumn(addToCart, 2);
                 addToCart.Click += AddToCart_Click;
+                addToCart.Click += SaveCart_Click;
 
                 Label productLabel = new Label
                 {
@@ -355,6 +346,7 @@ namespace ProjektarbeteButik
                 itemGrid.Children.Add(deleteFromCart);
                 Grid.SetColumn(deleteFromCart, 3);
                 deleteFromCart.Click += DeleteFromCart;
+                deleteFromCart.Click += SaveCart_Click;
             }
         }
         private void DeleteFromCart(object sender, RoutedEventArgs e)
@@ -424,7 +416,6 @@ namespace ProjektarbeteButik
                 linesList.Add(p.Name + "," + amount);
             }
             File.WriteAllLines(CartFilePath, linesList);
-            MessageBox.Show("Your Cart Was Saved");
         }
     }
 }
