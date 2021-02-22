@@ -199,13 +199,13 @@ namespace ProjektarbeteButik
             {
                 Margin = spacing,
                 Content = "Apply Discount Code",
-                FontSize = 10,
+                FontSize = 14,
             };
             checkOutGrid.Children.Add(applyDiscountCode);
             Grid.SetColumn(applyDiscountCode, 0);
             Grid.SetRow(applyDiscountCode, 1);
-            Grid.SetColumnSpan(applyDiscountCode, 3);
-            applyDiscountCode.Click += ApplyDiscountCode_Click;
+            Grid.SetColumnSpan(applyDiscountCode, 2);
+            applyDiscountCode.Click += ApplyDiscountCode_Click; 
 
             //We could also get rid of this button, and just have the cart save automatically whenever it updates
             Button saveCart = new Button
@@ -265,7 +265,8 @@ namespace ProjektarbeteButik
                 productGrid.Children.Add(addToCart);
                 Grid.SetRow(addToCart, 0);
                 Grid.SetColumn(addToCart, 2);
-                addToCart.Click += AddToCart;
+                addToCart.Click += AddToCart_Click;
+                addToCart.Click += SaveCart_Click;
 
                 Label productLabel = new Label
                 {
@@ -362,6 +363,7 @@ namespace ProjektarbeteButik
                 itemGrid.Children.Add(deleteFromCart);
                 Grid.SetColumn(deleteFromCart, 3);
                 deleteFromCart.Click += DeleteFromCart;
+                deleteFromCart.Click += SaveCart_Click;
             }
         }
         private void DeleteFromCart(object sender, RoutedEventArgs e)
@@ -420,7 +422,6 @@ namespace ProjektarbeteButik
                 linesList.Add(p.Name + "," + amount);
             }
             File.WriteAllLines(CartFilePath, linesList);
-            MessageBox.Show("Your Cart Was Saved");
         }
         private void ApplyDiscountCode_Click(object sender, RoutedEventArgs e)
         {
