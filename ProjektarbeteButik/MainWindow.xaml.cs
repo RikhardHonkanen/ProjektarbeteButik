@@ -16,7 +16,7 @@ using System.Windows.Navigation;
 using System.Windows.Shapes;
 
 namespace ProjektarbeteButik
-{//Delete this comment, only for push
+{
     public class Product
     {
         public string Name;
@@ -532,6 +532,11 @@ namespace ProjektarbeteButik
             // A small rendering tweak to ensure maximum visual appeal.
             RenderOptions.SetBitmapScalingMode(image, BitmapScalingMode.HighQuality);
             return image;
+        }
+        private void DummyMethod()
+        {
+            //Delete this method, only for push
+            MessageBox.Show("Hello");
         }
     }
 }
