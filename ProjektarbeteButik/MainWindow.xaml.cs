@@ -38,6 +38,7 @@ namespace ProjektarbeteButik
         public const string CartFilePath = @"C:\Windows\Temp\TheExcellentCart.csv";
         public StackPanel shopInventoryPanel;
         public StackPanel cartInventoryPanel;
+        public StackPanel receiptPanel;
         public decimal subTotal;
         public decimal totalCost;
         public Label subTotalLabel;
@@ -204,9 +205,6 @@ namespace ProjektarbeteButik
             checkOutGrid.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
             checkOutGrid.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
             checkOutGrid.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
-            checkOutGrid.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
-            checkOutGrid.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
-            checkOutGrid.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
             checkOutGrid.ColumnDefinitions.Add(new ColumnDefinition());
             checkOutGrid.ColumnDefinitions.Add(new ColumnDefinition());
             checkOutGrid.ColumnDefinitions.Add(new ColumnDefinition());
@@ -254,6 +252,16 @@ namespace ProjektarbeteButik
             Grid.SetColumn(checkOutButton, 2);
             Grid.SetRow(checkOutButton, 1);
             checkOutButton.Click += CheckOut;
+
+            receiptPanel = new StackPanel
+            {
+                Margin = spacing,
+                Orientation = Orientation.Vertical,
+            };
+            checkOutGrid.Children.Add(receiptPanel);
+            Grid.SetColumn(receiptPanel, 0);
+            Grid.SetRow(receiptPanel, 5);
+            Grid.SetColumnSpan(receiptPanel, 3);
 
             return checkOutGrid;
         }
@@ -470,6 +478,10 @@ namespace ProjektarbeteButik
         }
         private void ClearCart(object sender, RoutedEventArgs e)
         {//Removes all products from cart
+            if (shoppingCart.Count == 0)
+            {
+                return;
+            }
             MessageBoxResult result = MessageBox.Show("Clear Shopping Cart, Are You Sure?", "", MessageBoxButton.YesNo);
             if (result == MessageBoxResult.Yes)
             {
@@ -549,6 +561,7 @@ namespace ProjektarbeteButik
 
             if (result == MessageBoxResult.Yes)
             {
+                receiptPanel.Children.Clear();
                 receiptGrid = new DataGrid
                 {
                     AutoGenerateColumns = true,
@@ -610,7 +623,7 @@ namespace ProjektarbeteButik
                     {
                         Content = "Discount Code: " + couponTextBox.Text,
                     };
-                    checkOutGrid.Children.Add(receiptLabel);
+                    receiptPanel.Children.Add(receiptLabel);
                     Grid.SetRow(receiptLabel, 5);
                     Grid.SetColumn(receiptLabel, 0);
                     Grid.SetColumnSpan(receiptLabel, 2);
@@ -619,7 +632,7 @@ namespace ProjektarbeteButik
                     {
                         Content = "Sum Before Discount: " + subTotal + " $",
                     };
-                    checkOutGrid.Children.Add(receiptLabel);
+                    receiptPanel.Children.Add(receiptLabel);
                     Grid.SetRow(receiptLabel, 6);
                     Grid.SetColumn(receiptLabel, 0);
                     Grid.SetColumnSpan(receiptLabel, 2);
@@ -628,7 +641,7 @@ namespace ProjektarbeteButik
                     {
                         Content = "Discount: " + " XX $ " + "(X %)",
                     };
-                    checkOutGrid.Children.Add(receiptLabel);
+                    receiptPanel.Children.Add(receiptLabel);
                     Grid.SetRow(receiptLabel, 7);
                     Grid.SetColumn(receiptLabel, 0);
                     Grid.SetColumnSpan(receiptLabel, 2);
@@ -637,12 +650,11 @@ namespace ProjektarbeteButik
                     {
                         Content = "Sum After Discount: " + totalCost + " $",
                     };
-                    checkOutGrid.Children.Add(receiptLabel);
+                    receiptPanel.Children.Add(receiptLabel);
                     Grid.SetRow(receiptLabel, 8);
                     Grid.SetColumn(receiptLabel, 0);
                     Grid.SetColumnSpan(receiptLabel, 2);
-                }
-                
+                }                
                 shoppingCart.Clear();
                 File.Delete(CartFilePath);
                 UpdateCart();
