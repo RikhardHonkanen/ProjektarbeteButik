@@ -95,7 +95,11 @@ namespace ProjektarbeteButik
             Grid.SetColumn(checkOutGrid, 1);
             Grid.SetRow(checkOutGrid, 1);
 
+            // V�r varukorg laddas in fr�n LoadCart-metoden
             LoadCart();
+
+            // UpdateCart-metoden fungerar som en "refresh" till v�rt GUI. Varje g�ng vi g�r en f�r�ndring
+            // i v�r varukorg uppdateras GUI:t f�r att spegla hur kundvagnen ser ut just nu
             UpdateCart();
         }
 
@@ -190,7 +194,8 @@ namespace ProjektarbeteButik
             checkOutGrid.Margin = spacing;
             checkOutGrid.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
             checkOutGrid.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
-            checkOutGrid.RowDefinitions.Add(new RowDefinition());
+            checkOutGrid.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
+            checkOutGrid.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
             checkOutGrid.ColumnDefinitions.Add(new ColumnDefinition());
             checkOutGrid.ColumnDefinitions.Add(new ColumnDefinition());
             checkOutGrid.ColumnDefinitions.Add(new ColumnDefinition());
@@ -241,7 +246,6 @@ namespace ProjektarbeteButik
             return checkOutGrid;
         }
         public void AddProducts()
-        //We still need to display item description somewhere (included in .csv-file)
         {
             string[] products = File.ReadAllLines("ShopInventory.csv");
             foreach (string s in products)
@@ -411,18 +415,20 @@ namespace ProjektarbeteButik
         }
         public Dictionary<Product, int> LoadCart()
         {
+            //F�r att programmet inte ska krascha om filen inte finns kontrollerar vi med if-sats om filen finns
             if (!File.Exists(CartFilePath))
             {
+
             }
             else
             {
+                // Vi l�ser in v�r sparade varukorg fr�n v�r csv-fil eller skapar filen om den inte finns
                 string[] lines = File.ReadAllLines(CartFilePath);
                 foreach (string line in lines)
                 {
                     string[] parts = line.Split(',');
                     string name = parts[0];
                     int amount = int.Parse(parts[1]);
-
                     Product current = null;
                     foreach (Product p in productsList)
                     {
@@ -436,6 +442,8 @@ namespace ProjektarbeteButik
             }
             return shoppingCart;
         }
+        // SaveCart-metoden sparar ner varukorgen i en CSV-fil med produktnamn och antal produkter. 
+        // Metoden �terfinns i koden p� alla platser d�r det genomf�rs en f�r�ndring i varukorgen
         private void SaveCart()
         {
             List<string> linesList = new List<string>();
@@ -478,13 +486,22 @@ namespace ProjektarbeteButik
                 AutoGenerateColumns = true,
             };
             checkOutGrid.Children.Add(receiptGrid);
-            Grid.SetRow(receiptGrid, 2);
+            Grid.SetRow(receiptGrid, 3);
             Grid.SetColumn(receiptGrid, 0);
             Grid.SetColumnSpan(receiptGrid, 3);
-            receiptGrid.RowBackground = Brushes.OldLace;
+            receiptGrid.RowBackground = Brushes.White;
             receiptGrid.Foreground = Brushes.Black;
             receiptGrid.AlternatingRowBackground = Brushes.Gray;
 
+            Label textlabel = new Label
+            {
+                Content = "Receipt",
+                HorizontalContentAlignment = HorizontalAlignment.Center,
+                FontSize = 20,
+            };
+            checkOutGrid.Children.Add(textlabel);
+            Grid.SetRow(textlabel, 2);
+            Grid.SetColumn(textlabel, 1);
             DataGridTextColumn c1 = new DataGridTextColumn();
             c1.Header = "Name";
             c1.Binding = new Binding("Name");
@@ -505,7 +522,9 @@ namespace ProjektarbeteButik
             c4.Width = 120;
             c4.Binding = new Binding("Amount");
             receiptGrid.Columns.Add(c4);
-
+            
+            // G�r igenom v�r kundvagn och l�gger till v�rdena i den nya klassen "Receipt" i syfte att fylla
+            // v�rt kvitto, i form av en DataGrid
             foreach (KeyValuePair<Product, int> pair in shoppingCart)
             {
                 Receipt kvitto = new Receipt
@@ -517,6 +536,9 @@ namespace ProjektarbeteButik
                 };
                 receiptGrid.Items.Add(kvitto);
             }
+            shoppingCart.Clear();
+            File.Delete(CartFilePath);
+            UpdateCart();
         }
         private Image CreateImage(string filePath)
         {
