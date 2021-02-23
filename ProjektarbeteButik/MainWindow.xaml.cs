@@ -46,6 +46,9 @@ namespace ProjektarbeteButik
         public DataGrid receiptGrid;
         public List<Product> productsList = new List<Product>();
         public static Dictionary<Product, int> shoppingCart = new Dictionary<Product, int>();
+        public Label receiptLabel;
+        public bool acceptedDiscountCode;
+        public decimal discountAmount;
 
         public MainWindow()
         {
@@ -95,7 +98,7 @@ namespace ProjektarbeteButik
             Grid.SetColumn(checkOutGrid, 1);
             Grid.SetRow(checkOutGrid, 1);
 
-            // V�r varukorg laddas in fr�n LoadCart-metoden
+            //
             LoadCart();
 
             // UpdateCart-metoden fungerar som en "refresh" till v�rt GUI. Varje g�ng vi g�r en f�r�ndring
@@ -192,6 +195,11 @@ namespace ProjektarbeteButik
         {
             checkOutGrid = new Grid();
             checkOutGrid.Margin = spacing;
+            checkOutGrid.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
+            checkOutGrid.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
+            checkOutGrid.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
+            checkOutGrid.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
+            checkOutGrid.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
             checkOutGrid.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
             checkOutGrid.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
             checkOutGrid.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
@@ -473,6 +481,7 @@ namespace ProjektarbeteButik
                 totalCost = Math.Round(subTotal * discountCodes[couponInput], 2);
                 MessageBox.Show("Discount " + (int)((1 - discountCodes[couponInput]) * 100) + "%. Total for this order: $" + totalCost);
                 totalCostLabel.Content = "Total (with discount): $" + totalCost;
+                acceptedDiscountCode = true;
             }
             else
             {
@@ -481,64 +490,108 @@ namespace ProjektarbeteButik
         }
         private void CheckOut(object sender, RoutedEventArgs e)
         {
-            receiptGrid = new DataGrid
-            {
-                AutoGenerateColumns = true,
-            };
-            checkOutGrid.Children.Add(receiptGrid);
-            Grid.SetRow(receiptGrid, 3);
-            Grid.SetColumn(receiptGrid, 0);
-            Grid.SetColumnSpan(receiptGrid, 3);
-            receiptGrid.RowBackground = Brushes.White;
-            receiptGrid.Foreground = Brushes.Black;
-            receiptGrid.AlternatingRowBackground = Brushes.Gray;
+            MessageBoxResult result = MessageBox.Show("             Proceed to checkout?", "", MessageBoxButton.YesNo);
 
-            Label textlabel = new Label
+            if (result == MessageBoxResult.Yes)
             {
-                Content = "Receipt",
-                HorizontalContentAlignment = HorizontalAlignment.Center,
-                FontSize = 20,
-            };
-            checkOutGrid.Children.Add(textlabel);
-            Grid.SetRow(textlabel, 2);
-            Grid.SetColumn(textlabel, 1);
-            DataGridTextColumn c1 = new DataGridTextColumn();
-            c1.Header = "Name";
-            c1.Binding = new Binding("Name");
-            c1.Width = 110;
-            receiptGrid.Columns.Add(c1);
-            DataGridTextColumn c2 = new DataGridTextColumn();
-            c2.Header = "Unit Price";
-            c2.Width = 110;
-            c2.Binding = new Binding("Price");
-            receiptGrid.Columns.Add(c2);
-            DataGridTextColumn c3 = new DataGridTextColumn();
-            c3.Header = "Total Price";
-            c3.Width = 110;
-            c3.Binding = new Binding("TotalPrice");
-            receiptGrid.Columns.Add(c3);
-            DataGridTextColumn c4 = new DataGridTextColumn();
-            c4.Header = "Amount";
-            c4.Width = 120;
-            c4.Binding = new Binding("Amount");
-            receiptGrid.Columns.Add(c4);
-            
-            // G�r igenom v�r kundvagn och l�gger till v�rdena i den nya klassen "Receipt" i syfte att fylla
-            // v�rt kvitto, i form av en DataGrid
-            foreach (KeyValuePair<Product, int> pair in shoppingCart)
-            {
-                Receipt kvitto = new Receipt
+                receiptGrid = new DataGrid
                 {
-                    Name = pair.Key.Name,
-                    Amount = pair.Value,
-                    Price = pair.Key.Price,
-                    TotalPrice = pair.Value * pair.Key.Price,
+                    AutoGenerateColumns = true,
                 };
-                receiptGrid.Items.Add(kvitto);
+                checkOutGrid.Children.Add(receiptGrid);
+                Grid.SetRow(receiptGrid, 3);
+                Grid.SetColumn(receiptGrid, 0);
+                Grid.SetColumnSpan(receiptGrid, 3);
+                receiptGrid.RowBackground = Brushes.White;
+                receiptGrid.Foreground = Brushes.Black;
+                receiptGrid.AlternatingRowBackground = Brushes.Gray;
+
+                Label textlabel = new Label
+                {
+                    Content = "Receipt",
+                    HorizontalContentAlignment = HorizontalAlignment.Center,
+                    FontSize = 20,
+                };
+                checkOutGrid.Children.Add(textlabel);
+                Grid.SetRow(textlabel, 2);
+                Grid.SetColumn(textlabel, 1);
+
+                DataGridTextColumn c1 = new DataGridTextColumn();
+                c1.Header = "Name";
+                c1.Binding = new Binding("Name");
+                c1.Width = 110;
+                receiptGrid.Columns.Add(c1);
+                DataGridTextColumn c2 = new DataGridTextColumn();
+                c2.Header = "Unit Price";
+                c2.Width = 110;
+                c2.Binding = new Binding("Price");
+                receiptGrid.Columns.Add(c2);
+                DataGridTextColumn c3 = new DataGridTextColumn();
+                c3.Header = "Total Price";
+                c3.Width = 110;
+                c3.Binding = new Binding("TotalPrice");
+                receiptGrid.Columns.Add(c3);
+                DataGridTextColumn c4 = new DataGridTextColumn();
+                c4.Header = "Amount";
+                c4.Width = 120;
+                c4.Binding = new Binding("Amount");
+                receiptGrid.Columns.Add(c4);
+
+                foreach (KeyValuePair<Product, int> pair in shoppingCart)
+                {
+                    Receipt kvitto = new Receipt
+                    {
+                        Name = pair.Key.Name,
+                        Amount = pair.Value,
+                        Price = pair.Key.Price,
+                        TotalPrice = pair.Value * pair.Key.Price,
+                    };
+                    receiptGrid.Items.Add(kvitto);
+                }
+
+                if (acceptedDiscountCode == true)
+                {
+                    receiptLabel = new Label
+                    {
+                        Content = "Discount Code: " + couponTextBox.Text,
+                    };
+                    checkOutGrid.Children.Add(receiptLabel);
+                    Grid.SetRow(receiptLabel, 5);
+                    Grid.SetColumn(receiptLabel, 0);
+                    Grid.SetColumnSpan(receiptLabel, 2);
+
+                    receiptLabel = new Label
+                    {
+                        Content = "Sum Before Discount: " + subTotal + " $",
+                    };
+                    checkOutGrid.Children.Add(receiptLabel);
+                    Grid.SetRow(receiptLabel, 6);
+                    Grid.SetColumn(receiptLabel, 0);
+                    Grid.SetColumnSpan(receiptLabel, 2);
+
+                    receiptLabel = new Label
+                    {
+                        Content = "Discount: " + " XX $ " + "(X %)",
+                    };
+                    checkOutGrid.Children.Add(receiptLabel);
+                    Grid.SetRow(receiptLabel, 7);
+                    Grid.SetColumn(receiptLabel, 0);
+                    Grid.SetColumnSpan(receiptLabel, 2);
+
+                    receiptLabel = new Label
+                    {
+                        Content = "Sum After Discount: " + totalCost + " $",
+                    };
+                    checkOutGrid.Children.Add(receiptLabel);
+                    Grid.SetRow(receiptLabel, 8);
+                    Grid.SetColumn(receiptLabel, 0);
+                    Grid.SetColumnSpan(receiptLabel, 2);
+                }
+                
+                shoppingCart.Clear();
+                File.Delete(CartFilePath);
+                UpdateCart();
             }
-            shoppingCart.Clear();
-            File.Delete(CartFilePath);
-            UpdateCart();
         }
         private Image CreateImage(string filePath)
         {
