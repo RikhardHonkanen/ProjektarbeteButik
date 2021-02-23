@@ -22,19 +22,4 @@
 	    <CopyToOutputDirectory>Always</CopyToOutputDirectory>
 	  </Content>
 	</ItemGroup>
-
-  <ItemGroup>
-    <None Remove="nedladdning.jfif" />
-    <None Remove="TextFile1.txt" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Content Include="nedladdning.jfif">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Content>
-    <Content Include="TextFile1.txt">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Content>
-  </ItemGroup>
-
 </Project>
