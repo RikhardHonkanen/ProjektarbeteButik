@@ -24,6 +24,7 @@ namespace ProjektarbeteButik
         public decimal Price;
         public string PicturePath;
     }
+    //Class for Receipt objects, so we can use a DataGrid
     public class Receipt
     {
         public string Name { get; set; }
@@ -98,11 +99,10 @@ namespace ProjektarbeteButik
             Grid.SetColumn(checkOutGrid, 1);
             Grid.SetRow(checkOutGrid, 1);
 
-            //
+            //Cart is loaded from .csv-file
             LoadCart();
 
-            // UpdateCart-metoden fungerar som en "refresh" till v�rt GUI. Varje g�ng vi g�r en f�r�ndring
-            // i v�r varukorg uppdateras GUI:t f�r att spegla hur kundvagnen ser ut just nu
+            //This method is used in several places to refresh the GUI
             UpdateCart();
         }
 
@@ -166,6 +166,7 @@ namespace ProjektarbeteButik
             Grid.SetRow(clearCartButton, 2);
             clearCartButton.Click += ClearCart;
 
+            //Instance variable refreshed when cart is updated
             subTotalLabel = new Label
             {
                 Margin = spacing,
@@ -177,6 +178,7 @@ namespace ProjektarbeteButik
             Grid.SetColumn(subTotalLabel, 0);
             Grid.SetRow(subTotalLabel, 3);
 
+            //Instance variable refreshed when discount code is applied
             totalCostLabel = new Label
             {
                 Margin = spacing,
@@ -193,6 +195,7 @@ namespace ProjektarbeteButik
 
         public Grid CreateCheckOutGrid()
         {
+            //Instance variable, because Grid is used in CheckOut method
             checkOutGrid = new Grid();
             checkOutGrid.Margin = spacing;
             checkOutGrid.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
@@ -218,6 +221,7 @@ namespace ProjektarbeteButik
             Grid.SetRow(couponLabel, 0);
             Grid.SetColumnSpan(couponLabel, 2);
 
+            //Text needs to be parsed in method ApplyDiscountCode
             couponTextBox = new TextBox
             {
                 Margin = spacing,
@@ -277,6 +281,7 @@ namespace ProjektarbeteButik
                     PicturePath = productProperties[3]
                 };
                 productsList.Add(p);
+
                 Image productImage = CreateImage(p.PicturePath);
                 productImage.Stretch = Stretch.Fill;
                 productGrid.Children.Add(productImage);
@@ -342,10 +347,10 @@ namespace ProjektarbeteButik
                 shoppingCart[product] = 1;
             }
             UpdateCart();
-            SaveCart();
         }
         public void UpdateCart()
         {
+            //Each time cart is changed, it is cleared and re-populated 
             subTotal = 0;
             totalCost = 0;
             subTotalLabel.Content = "";
@@ -360,6 +365,8 @@ namespace ProjektarbeteButik
                 itemGrid.ColumnDefinitions.Add(new ColumnDefinition());
                 itemGrid.ColumnDefinitions.Add(new ColumnDefinition());
                 itemGrid.ColumnDefinitions.Add(new ColumnDefinition());
+                itemGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
+                itemGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
                 itemGrid.ColumnDefinitions.Add(new ColumnDefinition());
                 cartInventoryPanel.Children.Add(itemGrid);
 
@@ -390,6 +397,34 @@ namespace ProjektarbeteButik
                 itemGrid.Children.Add(itemAmount);
                 Grid.SetColumn(itemAmount, 2);
 
+                Button decreaseAmount = new Button
+                {
+                    Height = 16,
+                    Width = 16,
+                    Content = "-",
+                    VerticalContentAlignment = VerticalAlignment.Center,
+                    Margin = spacing,
+                    Padding = new Thickness(-1),
+                    Tag = item.Key
+                };
+                itemGrid.Children.Add(decreaseAmount);
+                Grid.SetColumn(decreaseAmount, 3);
+                decreaseAmount.Click += DecreaseItemAmount;
+
+                Button increaseAmount = new Button
+                {
+                    Height = 16,
+                    Width = 16,
+                    Content = "+",
+                    VerticalContentAlignment = VerticalAlignment.Center,
+                    Margin = spacing,
+                    Padding = new Thickness(-1),
+                    Tag = item.Key
+                };
+                itemGrid.Children.Add(increaseAmount);
+                Grid.SetColumn(increaseAmount, 4);
+                increaseAmount.Click += IncreaseItemAmount; ;
+
                 Button deleteFromCart = new Button
                 {
                     Content = "Delete",
@@ -398,39 +433,60 @@ namespace ProjektarbeteButik
                     Tag = item.Key
                 };
                 itemGrid.Children.Add(deleteFromCart);
-                Grid.SetColumn(deleteFromCart, 3);
+                Grid.SetColumn(deleteFromCart, 5);
                 deleteFromCart.Click += DeleteFromCart;
             }
+            SaveCart();
         }
+        private void DecreaseItemAmount(object sender, RoutedEventArgs e)
+        {//Decrease amount of a product by 1, or remove from cart if none left
+
+            Button button = (Button)sender;
+            var product = (Product)button.Tag;
+            if (shoppingCart[product] > 1)
+            {
+                shoppingCart[product] -= 1;
+                UpdateCart();
+            }
+            else
+            {
+                DeleteFromCart(sender, e);
+            }
+        }
+        private void IncreaseItemAmount(object sender, RoutedEventArgs e)
+        {//Increase amount of a product in cart by 1
+            Button button = (Button)sender;
+            var product = (Product)button.Tag;
+            shoppingCart[product] += 1;
+            UpdateCart();
+        }
+
         private void DeleteFromCart(object sender, RoutedEventArgs e)
-        {
+        {//Completely removes a product from the cart
             Button button = (Button)sender;
             var product = (Product)button.Tag;
             shoppingCart.Remove(product);
             UpdateCart();
-            SaveCart();
         }
         private void ClearCart(object sender, RoutedEventArgs e)
-        {
+        {//Removes all products from cart
             MessageBoxResult result = MessageBox.Show("Clear Shopping Cart, Are You Sure?", "", MessageBoxButton.YesNo);
             if (result == MessageBoxResult.Yes)
             {
                 shoppingCart.Clear();
                 File.Delete(CartFilePath);
                 UpdateCart();
-                SaveCart();
             }
         }
         public Dictionary<Product, int> LoadCart()
         {
-            //F�r att programmet inte ska krascha om filen inte finns kontrollerar vi med if-sats om filen finns
+            //If-statement to avoid program crash on missing file
             if (!File.Exists(CartFilePath))
             {
 
             }
             else
             {
-                // Vi l�ser in v�r sparade varukorg fr�n v�r csv-fil eller skapar filen om den inte finns
                 string[] lines = File.ReadAllLines(CartFilePath);
                 foreach (string line in lines)
                 {
@@ -450,10 +506,8 @@ namespace ProjektarbeteButik
             }
             return shoppingCart;
         }
-        // SaveCart-metoden sparar ner varukorgen i en CSV-fil med produktnamn och antal produkter. 
-        // Metoden �terfinns i koden p� alla platser d�r det genomf�rs en f�r�ndring i varukorgen
         private void SaveCart()
-        {
+        {//Cart is automatically saved to .csv-file whenever cart is updated
             List<string> linesList = new List<string>();
             foreach (KeyValuePair<Product, int> pair in shoppingCart)
             {
@@ -468,6 +522,7 @@ namespace ProjektarbeteButik
             string couponInput = couponTextBox.Text.ToLower();
             string[] lines = File.ReadAllLines("DiscountCodes.csv");
             var discountCodes = new Dictionary<string, decimal>();
+            //To prevent discount being applied several times variable totalCost is set equal to subTotal
             totalCost = subTotal;
             foreach (string line in lines)
             {
@@ -602,6 +657,7 @@ namespace ProjektarbeteButik
                 Source = source,
                 HorizontalAlignment = HorizontalAlignment.Left,
                 VerticalAlignment = VerticalAlignment.Center,
+                //Size of images limited so grid looks uniform
                 MaxHeight = 50,
                 MaxWidth = 50
             };
