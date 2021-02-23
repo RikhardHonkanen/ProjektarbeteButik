@@ -17,13 +17,6 @@ using System.Windows.Shapes;
 
 namespace ProjektarbeteButik
 {
-    public class Receipt
-    {
-        public string Name { get; set; }
-        public decimal Price { get; set; }
-        public decimal TotalPrice { get; set; }
-        public int Amount { get; set; }
-    }
     public class Product
     {
         public string Name;
@@ -31,20 +24,28 @@ namespace ProjektarbeteButik
         public decimal Price;
         public string PicturePath;
     }
+    public class Receipt
+    {
+        public string Name { get; set; }
+        public decimal Price { get; set; }
+        public decimal TotalPrice { get; set; }
+        public int Amount { get; set; }
+    }
     public partial class MainWindow : Window
     {
         public Thickness spacing = new Thickness(5);
         public StackPanel shopInventoryPanel;
         public StackPanel cartInventoryPanel;
+        public decimal subTotal;
         public decimal totalCost;
         public Label cartSubTotalLabel;
+        public Label totalCostLabel;
         public List<Product> productsList = new List<Product>();
         public static Dictionary<Product, int> shoppingCart = new Dictionary<Product, int>();
-        public Dictionary<string, string> discountCodes = new Dictionary<string, string>();
         public TextBox couponTextBox;
         public const string CartFilePath = @"C:\Windows\Temp\TheExcellentCart.csv";
         public Grid checkOutGrid;
-        public DataGrid dataGrid;
+        public DataGrid receiptGrid;
 
         public MainWindow()
         {
@@ -94,7 +95,11 @@ namespace ProjektarbeteButik
             Grid.SetColumn(checkOutGrid, 1);
             Grid.SetRow(checkOutGrid, 1);
 
+            // Vår varukorg laddas in från LoadCart-metoden
             LoadCart();
+
+            // UpdateCart-metoden fungerar som en "refresh" till vårt GUI. Varje gång vi gör en förändring
+            // i vår varukorg uppdateras GUI:t för att spegla hur kundvagnen ser ut just nu
             UpdateCart();
         }
 
@@ -104,7 +109,7 @@ namespace ProjektarbeteButik
             {
                 Margin = spacing,
                 Orientation = Orientation.Vertical,
-                Background = Brushes.OldLace,
+                Background = Brushes.OldLace
             };
 
             Label shopInventoryLabel = new Label
@@ -169,6 +174,17 @@ namespace ProjektarbeteButik
             Grid.SetColumn(cartSubTotalLabel, 0);
             Grid.SetRow(cartSubTotalLabel, 3);
 
+            totalCostLabel = new Label
+            {
+                Margin = spacing,
+                Content = "",
+                HorizontalAlignment = HorizontalAlignment.Right,
+                FontSize = 12
+            };
+            shoppingCartGrid.Children.Add(totalCostLabel);
+            Grid.SetColumn(totalCostLabel, 0);
+            Grid.SetRow(totalCostLabel, 3);
+
             return shoppingCartGrid;
         }
 
@@ -178,7 +194,8 @@ namespace ProjektarbeteButik
             checkOutGrid.Margin = spacing;
             checkOutGrid.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
             checkOutGrid.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
-            checkOutGrid.RowDefinitions.Add(new RowDefinition());
+            checkOutGrid.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
+            checkOutGrid.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
             checkOutGrid.ColumnDefinitions.Add(new ColumnDefinition());
             checkOutGrid.ColumnDefinitions.Add(new ColumnDefinition());
             checkOutGrid.ColumnDefinitions.Add(new ColumnDefinition());
@@ -212,7 +229,7 @@ namespace ProjektarbeteButik
             Grid.SetColumn(applyDiscountCode, 0);
             Grid.SetRow(applyDiscountCode, 1);
             Grid.SetColumnSpan(applyDiscountCode, 2);
-            applyDiscountCode.Click += ApplyDiscountCode_Click;
+            applyDiscountCode.Click += ApplyDiscountCode;
 
             Button checkOutButton = new Button
             {
@@ -223,59 +240,10 @@ namespace ProjektarbeteButik
             checkOutGrid.Children.Add(checkOutButton);
             Grid.SetColumn(checkOutButton, 2);
             Grid.SetRow(checkOutButton, 1);
-            checkOutButton.Click += CheckOutButton_Click;
+            checkOutButton.Click += CheckOut;
 
             return checkOutGrid;
         }
-
-        private void CheckOutButton_Click(object sender, RoutedEventArgs e)
-        {
-            dataGrid = new DataGrid
-            {
-                AutoGenerateColumns = true,
-            };
-            checkOutGrid.Children.Add(dataGrid);
-            Grid.SetRow(dataGrid, 2);
-            Grid.SetColumn(dataGrid, 0);
-            Grid.SetColumnSpan(dataGrid, 3);
-            dataGrid.RowBackground = Brushes.OldLace;
-            dataGrid.Foreground = Brushes.Black;
-            dataGrid.AlternatingRowBackground = Brushes.Gray;
-
-            DataGridTextColumn c1 = new DataGridTextColumn();
-            c1.Header = "Name";
-            c1.Binding = new Binding("Name");
-            c1.Width = 110;
-            dataGrid.Columns.Add(c1);
-            DataGridTextColumn c2 = new DataGridTextColumn();
-            c2.Header = "Unit Price";
-            c2.Width = 110;
-            c2.Binding = new Binding("Price");
-            dataGrid.Columns.Add(c2);
-            DataGridTextColumn c3 = new DataGridTextColumn();
-            c3.Header = "Total Price";
-            c3.Width = 110;
-            c3.Binding = new Binding("TotalPrice");
-            dataGrid.Columns.Add(c3);
-            DataGridTextColumn c4 = new DataGridTextColumn();
-            c4.Header = "Amount";
-            c4.Width = 120;
-            c4.Binding = new Binding("Amount");
-            dataGrid.Columns.Add(c4);
-
-            foreach (KeyValuePair<Product, int> pair in shoppingCart)
-            {
-                Receipt kvitto = new Receipt
-                {
-                    Name = pair.Key.Name,
-                    Amount = pair.Value,
-                    Price = pair.Key.Price,
-                    TotalPrice = pair.Value * pair.Key.Price,
-                };
-                dataGrid.Items.Add(kvitto);
-            }
-        }
-
         public void AddProducts()
         {
             string[] products = File.ReadAllLines("ShopInventory.csv");
@@ -286,11 +254,11 @@ namespace ProjektarbeteButik
                 productGrid.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
                 productGrid.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
                 productGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
-                productGrid.ColumnDefinitions.Add(new ColumnDefinition ());
-                productGrid.ColumnDefinitions.Add(new ColumnDefinition ());
+                productGrid.ColumnDefinitions.Add(new ColumnDefinition());
+                productGrid.ColumnDefinitions.Add(new ColumnDefinition());
                 productGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
                 shopInventoryPanel.Children.Add(productGrid);
-                
+
                 var productProperties = s.Split(',');
                 Product p = new Product
                 {
@@ -300,7 +268,6 @@ namespace ProjektarbeteButik
                     PicturePath = productProperties[3]
                 };
                 productsList.Add(p);
-
                 Image productImage = CreateImage(p.PicturePath);
                 productImage.Stretch = Stretch.Fill;
                 productGrid.Children.Add(productImage);
@@ -317,7 +284,7 @@ namespace ProjektarbeteButik
                 productGrid.Children.Add(productLabel);
                 Grid.SetRow(productLabel, 0);
                 Grid.SetColumn(productLabel, 1);
-                
+
                 Label productDescription = new Label
                 {
                     Content = p.Description,
@@ -349,7 +316,7 @@ namespace ProjektarbeteButik
                 productGrid.Children.Add(addToCart);
                 Grid.SetRow(addToCart, 1);
                 Grid.SetColumn(addToCart, 3);
-                addToCart.Click += AddToCart;                
+                addToCart.Click += AddToCart;
             }
         }
         private void AddToCart(object sender, RoutedEventArgs e)
@@ -370,13 +337,15 @@ namespace ProjektarbeteButik
         }
         public void UpdateCart()
         {
+            subTotal = 0;
             totalCost = 0;
             cartSubTotalLabel.Content = "";
+            totalCostLabel.Content = "";
             cartInventoryPanel.Children.Clear();
             foreach (var item in shoppingCart)
             {
-                totalCost += item.Key.Price * item.Value;
-                cartSubTotalLabel.Content = "Subtotal: $" + totalCost;
+                subTotal += item.Key.Price * item.Value;
+                cartSubTotalLabel.Content = "Subtotal: $" + subTotal;
                 Grid itemGrid = new Grid();
                 itemGrid.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
                 itemGrid.ColumnDefinitions.Add(new ColumnDefinition());
@@ -442,15 +411,17 @@ namespace ProjektarbeteButik
                 UpdateCart();
                 SaveCart();
             }
-        }        
+        }
         public Dictionary<Product, int> LoadCart()
         {
+            //För att programmet inte ska krascha om filen inte finns kontrollerar vi med if-sats om filen finns
             if (!File.Exists(CartFilePath))
             {
-                
+
             }
             else
             {
+                // Vi läser in vår sparade varukorg från vår csv-fil eller skapar filen om den inte finns
                 string[] lines = File.ReadAllLines(CartFilePath);
                 foreach (string line in lines)
                 {
@@ -458,6 +429,7 @@ namespace ProjektarbeteButik
                     string name = parts[0];
                     int amount = int.Parse(parts[1]);
 
+                    //Om p.Name är lika med name-variabeln lägger vi till 
                     Product current = null;
                     foreach (Product p in productsList)
                     {
@@ -471,6 +443,8 @@ namespace ProjektarbeteButik
             }
             return shoppingCart;
         }
+        // SaveCart-metoden sparar ner varukorgen i en CSV-fil med produktnamn och antal produkter. 
+        // Metoden återfinns i koden på alla platser där det genomförs en förändring i varukorgen
         private void SaveCart()
         {
             List<string> linesList = new List<string>();
@@ -482,9 +456,91 @@ namespace ProjektarbeteButik
             }
             File.WriteAllLines(CartFilePath, linesList);
         }
-        private void ApplyDiscountCode_Click(object sender, RoutedEventArgs e)
+        private void ApplyDiscountCode(object sender, RoutedEventArgs e)
         {
+            string couponInput = couponTextBox.Text.ToLower();
+            string[] lines = File.ReadAllLines("DiscountCodes.csv");
+            var discountCodes = new Dictionary<string, decimal>();
+            totalCost = subTotal;
+            foreach (string line in lines)
+            {
+                string[] parts = line.Split(',');
+                string discountCode = parts[0];
+                decimal discountAmount = decimal.Parse(parts[1]);
+                discountCodes[discountCode] = discountAmount;
+            }
+            if (discountCodes.ContainsKey(couponInput))
+            {
+                totalCost = Math.Round(subTotal * discountCodes[couponInput], 2);
+                MessageBox.Show("Discount " + (int)((1 - discountCodes[couponInput]) * 100) + "%. Total for this order: $" + totalCost);
+                totalCostLabel.Content = "Total (with discount): $" + totalCost;
+            }
+            else
+            {
+                MessageBox.Show("Code does not exist.");
+            }
+        }
+        private void CheckOut(object sender, RoutedEventArgs e)
+        {
+            receiptGrid = new DataGrid
+            {
+                AutoGenerateColumns = true,
+            };
+            checkOutGrid.Children.Add(receiptGrid);
+            Grid.SetRow(receiptGrid, 3);
+            Grid.SetColumn(receiptGrid, 0);
+            Grid.SetColumnSpan(receiptGrid, 3);
+            receiptGrid.RowBackground = Brushes.White;
+            receiptGrid.Foreground = Brushes.Black;
+            receiptGrid.AlternatingRowBackground = Brushes.Gray;
 
+            Label textlabel = new Label
+            {
+                Content = "Receipt",
+                HorizontalContentAlignment = HorizontalAlignment.Center,
+                FontSize = 20,
+            };
+            checkOutGrid.Children.Add(textlabel);
+            Grid.SetRow(textlabel, 2);
+            Grid.SetColumn(textlabel, 1);
+
+            DataGridTextColumn c1 = new DataGridTextColumn();
+            c1.Header = "Name";
+            c1.Binding = new Binding("Name");
+            c1.Width = 110;
+            receiptGrid.Columns.Add(c1);
+            DataGridTextColumn c2 = new DataGridTextColumn();
+            c2.Header = "Unit Price";
+            c2.Width = 110;
+            c2.Binding = new Binding("Price");
+            receiptGrid.Columns.Add(c2);
+            DataGridTextColumn c3 = new DataGridTextColumn();
+            c3.Header = "Total Price";
+            c3.Width = 110;
+            c3.Binding = new Binding("TotalPrice");
+            receiptGrid.Columns.Add(c3);
+            DataGridTextColumn c4 = new DataGridTextColumn();
+            c4.Header = "Amount";
+            c4.Width = 120;
+            c4.Binding = new Binding("Amount");
+            receiptGrid.Columns.Add(c4);
+
+            // Går igenom vår kundvagn och lägger till värdena i den nya klassen "Receipt" i syfte att fylla
+            // vårt kvitto, i form av en DataGrid
+            foreach (KeyValuePair<Product, int> pair in shoppingCart)
+            {
+                Receipt kvitto = new Receipt
+                {
+                    Name = pair.Key.Name,
+                    Amount = pair.Value,
+                    Price = pair.Key.Price,
+                    TotalPrice = pair.Value * pair.Key.Price,
+                };
+                receiptGrid.Items.Add(kvitto);
+            }
+            shoppingCart.Clear();
+            File.Delete(CartFilePath);
+            UpdateCart();
         }
         private Image CreateImage(string filePath)
         {
@@ -501,6 +557,10 @@ namespace ProjektarbeteButik
             RenderOptions.SetBitmapScalingMode(image, BitmapScalingMode.HighQuality);
             return image;
         }
+        private void DummyMethod()
+        {
+            //Delete this method, only for push
+            MessageBox.Show("Hello");
+        }
     }
 }
-
