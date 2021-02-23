@@ -50,6 +50,7 @@ namespace ProjektarbeteButik
         public Label receiptLabel;
         public bool acceptedDiscountCode;
         public decimal discountAmount;
+        public Dictionary<string, decimal> discountCodes = new Dictionary<string, decimal>();
 
         public MainWindow()
         {
@@ -57,7 +58,6 @@ namespace ProjektarbeteButik
             InitializeComponent();
             Start();
         }
-
         private void Start()
         {
             // Window options
@@ -105,7 +105,6 @@ namespace ProjektarbeteButik
             //This method is used in several places to refresh the GUI
             UpdateCart();
         }
-
         public StackPanel CreateShopInventoryPanel()
         {
             shopInventoryPanel = new StackPanel
@@ -192,7 +191,6 @@ namespace ProjektarbeteButik
 
             return shoppingCartGrid;
         }
-
         public Grid CreateCheckOutGrid()
         {
             //Instance variable, because Grid is used in CheckOut method
@@ -460,7 +458,6 @@ namespace ProjektarbeteButik
             shoppingCart[product] += 1;
             UpdateCart();
         }
-
         private void DeleteFromCart(object sender, RoutedEventArgs e)
         {//Completely removes a product from the cart
             Button button = (Button)sender;
@@ -519,9 +516,9 @@ namespace ProjektarbeteButik
         }
         private void ApplyDiscountCode(object sender, RoutedEventArgs e)
         {
-            string couponInput = couponTextBox.Text.ToLower();
+            
             string[] lines = File.ReadAllLines("DiscountCodes.csv");
-            var discountCodes = new Dictionary<string, decimal>();
+            discountCodes = new Dictionary<string, decimal>();
             //To prevent discount being applied several times variable totalCost is set equal to subTotal
             totalCost = subTotal;
             foreach (string line in lines)
@@ -531,10 +528,10 @@ namespace ProjektarbeteButik
                 decimal discountAmount = decimal.Parse(parts[1]);
                 discountCodes[discountCode] = discountAmount;
             }
-            if (discountCodes.ContainsKey(couponInput))
+            if (discountCodes.ContainsKey(couponTextBox.Text.ToLower()))
             {
-                totalCost = Math.Round(subTotal * discountCodes[couponInput], 2);
-                MessageBox.Show("Discount " + (int)((1 - discountCodes[couponInput]) * 100) + "%. Total for this order: $" + totalCost);
+                totalCost = Math.Round(subTotal * discountCodes[couponTextBox.Text.ToLower()], 2);
+                MessageBox.Show("Discount " + (int)((1 - discountCodes[couponTextBox.Text.ToLower()]) * 100) + "%. Total for this order: $" + totalCost);
                 totalCostLabel.Content = "Total (with discount): $" + totalCost;
                 acceptedDiscountCode = true;
             }
@@ -606,6 +603,7 @@ namespace ProjektarbeteButik
 
                 if (acceptedDiscountCode == true)
                 {
+                    checkOutGrid.Children.Remove(receiptLabel);
                     receiptLabel = new Label
                     {
                         Content = "Discount Code: " + couponTextBox.Text,
@@ -626,7 +624,7 @@ namespace ProjektarbeteButik
 
                     receiptLabel = new Label
                     {
-                        Content = "Discount: " + " XX $ " + "(X %)",
+                        Content = "Discount: " + (subTotal - totalCost) + " $ " + "(" + (int)((1 - discountCodes[couponTextBox.Text.ToLower()]) * 100) +" %)",
                     };
                     checkOutGrid.Children.Add(receiptLabel);
                     Grid.SetRow(receiptLabel, 7);
