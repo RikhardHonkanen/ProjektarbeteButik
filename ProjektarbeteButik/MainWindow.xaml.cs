@@ -34,18 +34,18 @@ namespace ProjektarbeteButik
     public partial class MainWindow : Window
     {
         public Thickness spacing = new Thickness(5);
+        public const string CartFilePath = @"C:\Windows\Temp\TheExcellentCart.csv";
         public StackPanel shopInventoryPanel;
         public StackPanel cartInventoryPanel;
         public decimal subTotal;
         public decimal totalCost;
-        public Label cartSubTotalLabel;
+        public Label subTotalLabel;
         public Label totalCostLabel;
-        public List<Product> productsList = new List<Product>();
-        public static Dictionary<Product, int> shoppingCart = new Dictionary<Product, int>();
         public TextBox couponTextBox;
-        public const string CartFilePath = @"C:\Windows\Temp\TheExcellentCart.csv";
         public Grid checkOutGrid;
         public DataGrid receiptGrid;
+        public List<Product> productsList = new List<Product>();
+        public static Dictionary<Product, int> shoppingCart = new Dictionary<Product, int>();
 
         public MainWindow()
         {
@@ -159,16 +159,16 @@ namespace ProjektarbeteButik
             Grid.SetRow(clearCartButton, 2);
             clearCartButton.Click += ClearCart;
 
-            cartSubTotalLabel = new Label
+            subTotalLabel = new Label
             {
                 Margin = spacing,
                 Content = "",
                 HorizontalAlignment = HorizontalAlignment.Left,
                 FontSize = 12
             };
-            shoppingCartGrid.Children.Add(cartSubTotalLabel);
-            Grid.SetColumn(cartSubTotalLabel, 0);
-            Grid.SetRow(cartSubTotalLabel, 3);
+            shoppingCartGrid.Children.Add(subTotalLabel);
+            Grid.SetColumn(subTotalLabel, 0);
+            Grid.SetRow(subTotalLabel, 3);
 
             totalCostLabel = new Label
             {
@@ -208,7 +208,8 @@ namespace ProjektarbeteButik
             couponTextBox = new TextBox
             {
                 Margin = spacing,
-                TextAlignment = TextAlignment.Center
+                TextAlignment = TextAlignment.Center,
+                VerticalContentAlignment = VerticalAlignment.Center
             };
             checkOutGrid.Children.Add(couponTextBox);
             Grid.SetColumn(couponTextBox, 2);
@@ -218,13 +219,13 @@ namespace ProjektarbeteButik
             {
                 Margin = spacing,
                 Content = "Apply Discount Code",
-                FontSize = 14,
+                FontSize = 14
             };
             checkOutGrid.Children.Add(applyDiscountCode);
             Grid.SetColumn(applyDiscountCode, 0);
             Grid.SetRow(applyDiscountCode, 1);
             Grid.SetColumnSpan(applyDiscountCode, 2);
-            applyDiscountCode.Click += ApplyDiscountCode; 
+            applyDiscountCode.Click += ApplyDiscountCode;
 
             Button checkOutButton = new Button
             {
@@ -253,7 +254,7 @@ namespace ProjektarbeteButik
                 productGrid.ColumnDefinitions.Add(new ColumnDefinition());
                 productGrid.ColumnDefinitions.Add(new ColumnDefinition());
                 productGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
-                shopInventoryPanel.Children.Add(productGrid);                
+                shopInventoryPanel.Children.Add(productGrid);
 
                 var productProperties = s.Split(',');
                 Product p = new Product
@@ -335,13 +336,13 @@ namespace ProjektarbeteButik
         {
             subTotal = 0;
             totalCost = 0;
-            cartSubTotalLabel.Content = "";
+            subTotalLabel.Content = "";
             totalCostLabel.Content = "";
             cartInventoryPanel.Children.Clear();
             foreach (var item in shoppingCart)
             {
                 subTotal += item.Key.Price * item.Value;
-                cartSubTotalLabel.Content = "Subtotal: $" + subTotal;
+                subTotalLabel.Content = "Subtotal: $" + subTotal;
                 Grid itemGrid = new Grid();
                 itemGrid.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
                 itemGrid.ColumnDefinitions.Add(new ColumnDefinition());
@@ -407,7 +408,7 @@ namespace ProjektarbeteButik
                 UpdateCart();
                 SaveCart();
             }
-        }        
+        }
         public Dictionary<Product, int> LoadCart()
         {
             if (!File.Exists(CartFilePath))
@@ -468,7 +469,7 @@ namespace ProjektarbeteButik
             else
             {
                 MessageBox.Show("Code does not exist.");
-            }            
+            }
         }
         private void CheckOut(object sender, RoutedEventArgs e)
         {
@@ -529,14 +530,8 @@ namespace ProjektarbeteButik
                 MaxHeight = 50,
                 MaxWidth = 50
             };
-            // A small rendering tweak to ensure maximum visual appeal.
             RenderOptions.SetBitmapScalingMode(image, BitmapScalingMode.HighQuality);
             return image;
-        }
-        private void DummyMethod()
-        {
-            //Delete this method, only for push
-            MessageBox.Show("Hello");
         }
     }
 }
