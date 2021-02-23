@@ -16,7 +16,7 @@ using System.Windows.Navigation;
 using System.Windows.Shapes;
 
 namespace ProjektarbeteButik
-{
+{//Delete this comment, only for push
     public class Product
     {
         public string Name;
