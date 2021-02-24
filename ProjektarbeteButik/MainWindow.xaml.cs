@@ -24,7 +24,7 @@ namespace ProjektarbeteButik
         public decimal Price;
         public string PicturePath;
     }
-    //Class for Receipt objects, so we can use a DataGrid
+    //Class for Receipt objects, used for data grid in CheckOut
     public class Receipt
     {
         public string Name { get; set; }
@@ -34,6 +34,7 @@ namespace ProjektarbeteButik
     }
     public partial class MainWindow : Window
     {
+        //Instance variables, further explained later (where necessary)
         public Thickness spacing = new Thickness(5);
         public const string CartFilePath = @"C:\Windows\Temp\TheExcellentCart.csv";
         public StackPanel shopInventoryPanel;
@@ -44,6 +45,7 @@ namespace ProjektarbeteButik
         public Label subTotalLabel;
         public Label totalCostLabel;
         public TextBox couponTextBox;
+        public Button checkOutButton;
         public Grid checkOutGrid;
         public DataGrid receiptGrid;
         public List<Product> productsList = new List<Product>();
@@ -210,7 +212,8 @@ namespace ProjektarbeteButik
             Label couponLabel = new Label
             {
                 Margin = spacing,
-                Content = "(Optional) Discount Coupon"
+                Content = "(Optional) Discount Coupon",
+                HorizontalContentAlignment = HorizontalAlignment.Right
             };
             checkOutGrid.Children.Add(couponLabel);
             Grid.SetColumn(couponLabel, 0);
@@ -231,7 +234,7 @@ namespace ProjektarbeteButik
             Button applyDiscountCode = new Button
             {
                 Margin = spacing,
-                Content = "Apply Discount Code",
+                Content = "Apply Discount Coupon",
                 FontSize = 14
             };
             checkOutGrid.Children.Add(applyDiscountCode);
@@ -240,11 +243,14 @@ namespace ProjektarbeteButik
             Grid.SetColumnSpan(applyDiscountCode, 2);
             applyDiscountCode.Click += ApplyDiscountCode;
 
-            Button checkOutButton = new Button
+            checkOutButton = new Button
             {
                 Margin = spacing,
                 Content = "BUY",
-                FontSize = 14
+                FontSize = 14,
+                FontWeight = FontWeights.Bold,
+                IsDefault = true,
+                IsEnabled = false                
             };
             checkOutGrid.Children.Add(checkOutButton);
             Grid.SetColumn(checkOutButton, 2);
@@ -362,6 +368,7 @@ namespace ProjektarbeteButik
             subTotalLabel.Content = "";
             totalCostLabel.Content = "";
             cartInventoryPanel.Children.Clear();
+            int counter = 0;
             foreach (var item in shoppingCart)
             {
                 subTotal += item.Key.Price * item.Value;
@@ -374,6 +381,10 @@ namespace ProjektarbeteButik
                 itemGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
                 itemGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
                 itemGrid.ColumnDefinitions.Add(new ColumnDefinition());
+                if (counter % 2 == 0)
+                {
+                    itemGrid.Background = Brushes.AntiqueWhite;
+                }
                 cartInventoryPanel.Children.Add(itemGrid);
 
                 Label itemName = new Label
@@ -441,6 +452,16 @@ namespace ProjektarbeteButik
                 itemGrid.Children.Add(deleteFromCart);
                 Grid.SetColumn(deleteFromCart, 5);
                 deleteFromCart.Click += DeleteFromCart;
+
+                counter++;
+            }
+            if (shoppingCart.Count > 0)
+            {
+                checkOutButton.IsEnabled = true;
+            }
+            else
+            {
+                checkOutButton.IsEnabled = false;
             }
             SaveCart();
         }
@@ -549,7 +570,7 @@ namespace ProjektarbeteButik
             }
             else
             {
-                MessageBox.Show("Code does not exist.");
+                MessageBox.Show("Coupon does not exist.");
             }
         }
         private void CheckOut(object sender, RoutedEventArgs e)
@@ -615,11 +636,10 @@ namespace ProjektarbeteButik
                 }
 
                 if (acceptedDiscountCode == true)
-                {
-                    checkOutGrid.Children.Remove(receiptLabel);
+                {                    
                     receiptLabel = new Label
                     {
-                        Content = "Discount Code: " + couponTextBox.Text,
+                        Content = "Discount Code: " + couponTextBox.Text
                     };
                     receiptPanel.Children.Add(receiptLabel);
                     Grid.SetRow(receiptLabel, 5);
@@ -628,7 +648,7 @@ namespace ProjektarbeteButik
 
                     receiptLabel = new Label
                     {
-                        Content = "Sum Before Discount: " + subTotal + " $",
+                        Content = "Sum Before Discount: $" + subTotal
                     };
                     receiptPanel.Children.Add(receiptLabel);
                     Grid.SetRow(receiptLabel, 6);
@@ -637,22 +657,27 @@ namespace ProjektarbeteButik
 
                     receiptLabel = new Label
                     {
-                        Content = "Discount: " + (subTotal - totalCost) + " $ " + "(" + (int)((1 - discountCodes[couponTextBox.Text.ToLower()]) * 100) +" %)",
+                        Content = "Discount: $" + (subTotal - totalCost) + "(" + (int)((1 - discountCodes[couponTextBox.Text.ToLower()]) * 100) +" %)"
                     };
                     receiptPanel.Children.Add(receiptLabel);
                     Grid.SetRow(receiptLabel, 7);
                     Grid.SetColumn(receiptLabel, 0);
                     Grid.SetColumnSpan(receiptLabel, 2);
+                }
+                if (totalCost == 0)
+                {
+                    totalCost = subTotal;
+                }
+                receiptLabel = new Label
+                {
+                    Content = "Total for this purchase: $" + totalCost,
+                    FontWeight = FontWeights.Bold
+                };
+                receiptPanel.Children.Add(receiptLabel);
+                Grid.SetRow(receiptLabel, 8);
+                Grid.SetColumn(receiptLabel, 0);
+                Grid.SetColumnSpan(receiptLabel, 2);
 
-                    receiptLabel = new Label
-                    {
-                        Content = "Sum After Discount: " + totalCost + " $",
-                    };
-                    receiptPanel.Children.Add(receiptLabel);
-                    Grid.SetRow(receiptLabel, 8);
-                    Grid.SetColumn(receiptLabel, 0);
-                    Grid.SetColumnSpan(receiptLabel, 2);
-                }                
                 shoppingCart.Clear();
                 File.Delete(CartFilePath);
                 UpdateCart();
