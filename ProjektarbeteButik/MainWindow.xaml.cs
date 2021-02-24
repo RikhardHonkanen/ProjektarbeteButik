@@ -34,7 +34,7 @@ namespace ProjektarbeteButik
     }
     public partial class MainWindow : Window
     {
-        //Instance variables, further explained later (where necessary)
+        //Instance variables further explained later (where necessary)
         public Thickness spacing = new Thickness(5);
         public const string CartFilePath = @"C:\Windows\Temp\TheExcellentCart.csv";
         public StackPanel shopInventoryPanel;
@@ -149,6 +149,7 @@ namespace ProjektarbeteButik
             };
             shoppingCartGrid.Children.Add(cartInventoryLabel);
 
+            //Items will be added to this panel in the UpdateCart method
             cartInventoryPanel = new StackPanel
             {
                 Margin = spacing,
@@ -243,6 +244,7 @@ namespace ProjektarbeteButik
             Grid.SetColumnSpan(applyDiscountCode, 2);
             applyDiscountCode.Click += ApplyDiscountCode;
 
+            //Needs to be accessed in UpdateCart, to toggle Enabled/Disabled
             checkOutButton = new Button
             {
                 Margin = spacing,
@@ -257,6 +259,7 @@ namespace ProjektarbeteButik
             Grid.SetRow(checkOutButton, 1);
             checkOutButton.Click += CheckOut;
 
+            //Panel is populated in CheckOut
             receiptPanel = new StackPanel
             {
                 Margin = spacing,
@@ -271,6 +274,7 @@ namespace ProjektarbeteButik
         }
         public void AddProducts()
         {
+            //Reads inventory from .csv-file and creates a grid for each item. Grid is added to shopInventoryPanel.
             string[] products = File.ReadAllLines("ShopInventory.csv");
             foreach (string s in products)
             {
@@ -362,7 +366,7 @@ namespace ProjektarbeteButik
         }
         public void UpdateCart()
         {
-            //Each time cart is changed, it is cleared and re-populated 
+            //Each time cart is changed, the GUI is cleared and re-populated 
             subTotal = 0;
             totalCost = 0;
             subTotalLabel.Content = "";
@@ -421,6 +425,7 @@ namespace ProjektarbeteButik
                     Content = "-",
                     VerticalContentAlignment = VerticalAlignment.Center,
                     Margin = spacing,
+                    //For some reason negative padding (sort of) centers the "-" symbol in the button
                     Padding = new Thickness(-1),
                     Tag = item.Key
                 };
@@ -466,8 +471,8 @@ namespace ProjektarbeteButik
             SaveCart();
         }
         private void DecreaseItemAmount(object sender, RoutedEventArgs e)
-        {//Decrease amount of a product by 1, or remove from cart if none left
-
+        {
+            //Decrease amount of a product by 1, or remove from cart if none left
             Button button = (Button)sender;
             var product = (Product)button.Tag;
             if (shoppingCart[product] > 1)
@@ -481,21 +486,24 @@ namespace ProjektarbeteButik
             }
         }
         private void IncreaseItemAmount(object sender, RoutedEventArgs e)
-        {//Increase amount of a product in cart by 1
+        {
+            //Increase amount of a product in cart by 1
             Button button = (Button)sender;
             var product = (Product)button.Tag;
             shoppingCart[product] += 1;
             UpdateCart();
         }
         private void DeleteFromCart(object sender, RoutedEventArgs e)
-        {//Completely removes a product from the cart
+        {
+            //Completely removes a product from the cart
             Button button = (Button)sender;
             var product = (Product)button.Tag;
             shoppingCart.Remove(product);
             UpdateCart();
         }
         private void ClearCart(object sender, RoutedEventArgs e)
-        {//Removes all products from cart
+        {
+            //Removes all products from cart
             if (shoppingCart.Count == 0)
             {
                 return;
@@ -510,7 +518,7 @@ namespace ProjektarbeteButik
         }
         public Dictionary<Product, int> LoadCart()
         {
-            //If-statement to avoid program crash on missing file
+            //Loads saved cart from .csv-file. If-statement to avoid program crash on missing file
             if (!File.Exists(CartFilePath))
             {
 
@@ -537,7 +545,8 @@ namespace ProjektarbeteButik
             return shoppingCart;
         }
         private void SaveCart()
-        {//Cart is automatically saved to .csv-file whenever cart is updated
+        {
+            //Cart is automatically saved to .csv-file whenever cart is updated
             List<string> linesList = new List<string>();
             foreach (KeyValuePair<Product, int> pair in shoppingCart)
             {
@@ -549,10 +558,10 @@ namespace ProjektarbeteButik
         }
         private void ApplyDiscountCode(object sender, RoutedEventArgs e)
         {
-            
+            //Reads user input from couponTextBox, and applies appropriate discount if the code exists in .csv-file.
             string[] lines = File.ReadAllLines("DiscountCodes.csv");
             discountCodes = new Dictionary<string, decimal>();
-            //To prevent discount being applied several times variable totalCost is set equal to subTotal
+            //To prevent discount being applied several times variable totalCost is set equal to subTotal.
             totalCost = subTotal;
             foreach (string line in lines)
             {
@@ -575,6 +584,7 @@ namespace ProjektarbeteButik
         }
         private void CheckOut(object sender, RoutedEventArgs e)
         {
+            //Displays a receipt to the user. Also checks whether a discount is applied to format receipt correctly.
             MessageBoxResult result = MessageBox.Show("             Proceed to checkout?", "", MessageBoxButton.YesNo);
 
             if (result == MessageBoxResult.Yes)
@@ -692,7 +702,7 @@ namespace ProjektarbeteButik
                 Source = source,
                 HorizontalAlignment = HorizontalAlignment.Left,
                 VerticalAlignment = VerticalAlignment.Center,
-                //Size of images limited so grid looks uniform
+                //Size of images limited so shop inventory looks uniform
                 MaxHeight = 50,
                 MaxWidth = 50
             };
