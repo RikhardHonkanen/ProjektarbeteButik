@@ -369,7 +369,7 @@ namespace ProjektarbeteButik
         {
             //Each time cart is changed, the GUI is cleared and re-populated 
             subTotal = 0;
-            totalCost = 0;
+            totalCost = 0;            
             if (generatedReceipt == true)
             {
                 MessageBoxResult result = MessageBox.Show("Receipt will be cleared, start shopping again?", "", MessageBoxButton.YesNo);
@@ -590,16 +590,28 @@ namespace ProjektarbeteButik
                 decimal discountAmount = decimal.Parse(parts[1]);
                 discountCodes[discountCode] = discountAmount;
             }
-            if (discountCodes.ContainsKey(couponTextBox.Text.ToLower()))
+            string input = couponTextBox.Text.ToLower();
+            acceptedDiscountCode = CheckIfCodeIsValid(discountCodes, input);
+            if (acceptedDiscountCode)
             {
                 totalCost = Math.Round(subTotal * discountCodes[couponTextBox.Text.ToLower()], 2);
                 MessageBox.Show("Discount " + (int)((1 - discountCodes[couponTextBox.Text.ToLower()]) * 100) + "%. Total for this order: $" + totalCost);
                 totalCostLabel.Content = "Total (with discount): $" + totalCost;
-                acceptedDiscountCode = true;
             }
             else
             {
                 MessageBox.Show("Coupon does not exist.");
+            }
+        }
+        public static bool CheckIfCodeIsValid(Dictionary<string, decimal> discountCodes, string input)
+        {
+            if (discountCodes.ContainsKey(input))
+            {
+                return true;
+            }
+            else
+            {
+                return false;
             }
         }
         private void CheckOut(object sender, RoutedEventArgs e)
