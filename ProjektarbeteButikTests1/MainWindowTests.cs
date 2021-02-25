@@ -40,11 +40,12 @@ namespace ProjektarbeteButik.Tests
         [TestMethod()]
         public void LoadCart()
         {
-            //var products = new List<Product>() { new Product { Name = "Thing1", Description = "Testthing1", Price = 100, PicturePath = "" } };
-            //string path = "TestCart.csv";
-            //var result = MainWindow.LoadCart(products, path);
-            //bool s = result.Name;
-            //Assert.AreEqual(result.ContainsKey(Thing1), "Thing1");
+            Dictionary<string, int> discountCodes = new Dictionary<string, int>();
+           
+            
+            string path = "TestCart.csv";
+            var result = MainWindow.LoadDiscountCodes(discountCodes, path);
+            Assert.AreEqual(produkt.Name = "Thing1", result);
         }
     }
 }
