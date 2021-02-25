@@ -38,14 +38,41 @@ namespace ProjektarbeteButik.Tests
         }
 
         [TestMethod()]
-        public void LoadCart()
+        public void CartToDictionaryKey()
         {
-            Dictionary<string, int> discountCodes = new Dictionary<string, int>();
-           
-            
+            var products = new List<Product>() { new Product { Name = "Thing1", Description = "Testthing1", Price = 100, PicturePath = "" } };
             string path = "TestCart.csv";
-            var result = MainWindow.LoadDiscountCodes(discountCodes, path);
-            Assert.AreEqual(produkt.Name = "Thing1", result);
+            var result = MainWindow.LoadCart(products, path);
+            foreach (var p in result)
+            {
+                Assert.AreEqual(p.Key.Name, "Thing1");
+            }
+        }
+
+        [TestMethod()]
+        public void CartToDictionaryValue()
+        {
+            var products = new List<Product>() { new Product { Name = "Thing1", Description = "Testthing1", Price = 100, PicturePath = "" } };
+            string path = "TestCart.csv";
+            var result = MainWindow.LoadCart(products, path);
+            foreach (var p in result)
+            {
+                Assert.AreEqual(p.Value, 5);
+            }
+        }
+
+        [TestMethod()]
+        public void CalculateTotalZero()
+        {
+            var result = MainWindow.CalculateTotalCost((decimal)0.9, 0);
+            Assert.AreEqual(result, 0);
+        }
+
+        [TestMethod()]
+        public void CalculateTotalNonZero()
+        {
+            var result = MainWindow.CalculateTotalCost((decimal)0.9, 180);
+            Assert.AreEqual(result, 162);
         }
     }
 }
