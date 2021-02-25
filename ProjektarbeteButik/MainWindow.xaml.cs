@@ -600,14 +600,20 @@ namespace ProjektarbeteButik
             acceptedDiscountCode = CheckIfCodeIsValid(discountCodes, input);
             if (acceptedDiscountCode)
             {
-                totalCost = Math.Round(subTotal * discountCodes[couponTextBox.Text.ToLower()], 2);
-                MessageBox.Show("Discount " + (int)((1 - discountCodes[couponTextBox.Text.ToLower()]) * 100) + "%. Total for this order: $" + totalCost);
+                discountAmount = discountCodes[input];
+                totalCost = CalculateTotalCost(discountAmount, subTotal);
+                MessageBox.Show("Discount " + (int)((1 - discountAmount) * 100) + "%. Total for this order: $" + totalCost);
                 totalCostLabel.Content = "Total (with discount): $" + totalCost;
             }
             else
             {
                 MessageBox.Show("Coupon does not exist.");
             }
+        }
+        public static decimal CalculateTotalCost(decimal discountAmount, decimal subTotal)
+        {            
+            decimal totalCost = Math.Round(subTotal * discountAmount, 2);
+            return totalCost;
         }
         public static bool CheckIfCodeIsValid(Dictionary<string, decimal> discountCodes, string input)
         {
