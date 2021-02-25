@@ -36,7 +36,7 @@ namespace ProjektarbeteButik
     {
         //Instance variables further explained later (where necessary)
         public Thickness spacing = new Thickness(5);
-        public const string CartFilePath = @"C:\Windows\Temp\TheExcellentCart.csv";
+        public const string cartFilePath = @"C:\Windows\Temp\TheExcellentCart.csv";
         public StackPanel shopInventoryPanel;
         public StackPanel cartInventoryPanel;
         public StackPanel receiptPanel;
@@ -103,10 +103,13 @@ namespace ProjektarbeteButik
             Grid.SetColumn(checkOutGrid, 1);
             Grid.SetRow(checkOutGrid, 1);
 
-            //Cart is loaded from .csv-file
-            LoadCart();
+            //Cart is loaded from .csv-file.
+            shoppingCart = LoadCart(productsList, cartFilePath);
 
-            //This method is used in several places to refresh the GUI
+            //Valid discount codes read from .csv-file and stored in dictionary for later use.
+            discountCodes = LoadDiscountCodes();
+
+            //This method is used in several places to refresh the GUI.
             UpdateCart();
         }
         public StackPanel CreateShopInventoryPanel()
@@ -531,20 +534,20 @@ namespace ProjektarbeteButik
             if (result == MessageBoxResult.Yes)
             {
                 shoppingCart.Clear();
-                File.Delete(CartFilePath);
+                File.Delete(cartFilePath);
                 UpdateCart();
             }
         }
-        public Dictionary<Product, int> LoadCart()
+        public static Dictionary<Product, int> LoadCart(List<Product> productsList, string cartFilePath)
         {
             //Loads saved cart from .csv-file. If-statement to avoid program crash on missing file
-            if (!File.Exists(CartFilePath))
+            if (!File.Exists(cartFilePath))
             {
 
             }
             else
             {
-                string[] lines = File.ReadAllLines(CartFilePath);
+                string[] lines = File.ReadAllLines(cartFilePath);
                 foreach (string line in lines)
                 {
                     string[] parts = line.Split(',');
@@ -573,15 +576,12 @@ namespace ProjektarbeteButik
                 int amount = pair.Value;
                 linesList.Add(p.Name + "," + amount);
             }
-            File.WriteAllLines(CartFilePath, linesList);
+            File.WriteAllLines(cartFilePath, linesList);
         }
-        private void ApplyDiscountCode(object sender, RoutedEventArgs e)
+        private static Dictionary<string, decimal> LoadDiscountCodes()
         {
-            //Reads user input from couponTextBox, and applies appropriate discount if the code exists in .csv-file.
             string[] lines = File.ReadAllLines("DiscountCodes.csv");
-            discountCodes = new Dictionary<string, decimal>();
-            //To prevent discount being applied several times variable totalCost is set equal to subTotal.
-            totalCost = subTotal;
+            var discountCodes = new Dictionary<string, decimal>();
             foreach (string line in lines)
             {
                 string[] parts = line.Split(',');
@@ -589,6 +589,13 @@ namespace ProjektarbeteButik
                 decimal discountAmount = decimal.Parse(parts[1]);
                 discountCodes[discountCode] = discountAmount;
             }
+            return discountCodes;
+        }
+        private void ApplyDiscountCode(object sender, RoutedEventArgs e)
+        {
+            //Reads user input from couponTextBox, and applies appropriate discount if the code is valid.            
+            //To prevent discount being applied several times variable totalCost is set equal to subTotal.
+            totalCost = subTotal;            
             string input = couponTextBox.Text.ToLower();
             acceptedDiscountCode = CheckIfCodeIsValid(discountCodes, input);
             if (acceptedDiscountCode)
@@ -727,7 +734,7 @@ namespace ProjektarbeteButik
                 Grid.SetColumnSpan(receiptLabel, 2);
 
                 shoppingCart.Clear();
-                File.Delete(CartFilePath);
+                File.Delete(cartFilePath);
                 UpdateCart();
                 generatedReceipt = true;
             }
