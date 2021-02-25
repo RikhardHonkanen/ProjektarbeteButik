@@ -52,6 +52,7 @@ namespace ProjektarbeteButik
         public static Dictionary<Product, int> shoppingCart = new Dictionary<Product, int>();
         public Label receiptLabel;
         public bool acceptedDiscountCode;
+        public bool generatedReceipt;
         public decimal discountAmount;
         public Dictionary<string, decimal> discountCodes = new Dictionary<string, decimal>();
 
@@ -369,6 +370,24 @@ namespace ProjektarbeteButik
             //Each time cart is changed, the GUI is cleared and re-populated 
             subTotal = 0;
             totalCost = 0;
+            if (generatedReceipt == true)
+            {
+                MessageBoxResult result = MessageBox.Show("Receipt will be cleared, start shopping again?", "", MessageBoxButton.YesNo);
+                if (result == MessageBoxResult.Yes)
+                {
+                    couponTextBox.Text = "";
+                    receiptPanel.Children.Clear();
+                    checkOutGrid.Children.RemoveAt(6);
+                    checkOutGrid.Children.RemoveAt(5);
+                }
+                else
+                {
+                    shoppingCart.Clear();
+                    return;
+                }
+            }
+            generatedReceipt = false;
+            acceptedDiscountCode = false;
             subTotalLabel.Content = "";
             totalCostLabel.Content = "";
             cartInventoryPanel.Children.Clear();
@@ -586,8 +605,15 @@ namespace ProjektarbeteButik
         private void CheckOut(object sender, RoutedEventArgs e)
         {
             //Displays a receipt to the user. Also checks whether a discount is applied to format receipt correctly.
-            MessageBoxResult result = MessageBox.Show("             Proceed to checkout?", "", MessageBoxButton.YesNo);
-
+            MessageBoxResult result;
+            if (acceptedDiscountCode == false && couponTextBox.Text != "")
+            {
+                result = MessageBox.Show("Discount coupon not applied, proceed to checkout anyway?", "", MessageBoxButton.YesNo);
+            }
+            else
+            {
+                result = MessageBox.Show("             Proceed to checkout?", "", MessageBoxButton.YesNo);
+            }
             if (result == MessageBoxResult.Yes)
             {
                 receiptPanel.Children.Clear();
@@ -692,6 +718,7 @@ namespace ProjektarbeteButik
                 shoppingCart.Clear();
                 File.Delete(CartFilePath);
                 UpdateCart();
+                generatedReceipt = true;
             }
         }
         private Image CreateImage(string filePath)
