@@ -20,8 +20,8 @@ namespace ProjektarbeteButik.Tests
 
             };
             string input = "abc123";
-            //bool result = MainWindow.CheckIfCodeIsValid(codes, input);
-            Assert.Fail();
+            bool result = MainWindow.CheckIfCodeIsValid(codes, input);
+            Assert.AreEqual(result, true);
         }        
 
         [TestMethod()]
