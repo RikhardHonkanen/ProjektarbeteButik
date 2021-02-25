@@ -468,6 +468,7 @@ namespace ProjektarbeteButik
             {
                 checkOutButton.IsEnabled = false;
             }
+            
             SaveCart();
         }
         private void DecreaseItemAmount(object sender, RoutedEventArgs e)
