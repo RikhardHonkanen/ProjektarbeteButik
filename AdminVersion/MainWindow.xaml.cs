@@ -31,6 +31,7 @@ namespace AdminVersion
         public string imageFileName;
         public TextBox discountCodeName;
         public TextBox discountPercentage;
+        public TextBox imageFilePathBox;
 
         public MainWindow()
         {
@@ -72,7 +73,7 @@ namespace AdminVersion
             grid.Children.Add(discountCodePanel);
             Grid.SetColumn(discountCodePanel, 1);
             Grid.SetRow(discountCodePanel, 0);
-            Grid.SetRowSpan(discountCodePanel, 2);
+            Grid.SetRowSpan(discountCodePanel, 2); 
         }
         public StackPanel AddDiscountCodePanel()
         {
@@ -140,21 +141,31 @@ namespace AdminVersion
 
             return discountInventoryPanel;
         }
-
         private void SaveDiscountCode_Click(object sender, RoutedEventArgs e)
         {
             List<string> discountList = new List<string>();
-            discountList.Add(discountCodeName.Text + "," + discountPercentage.Text);
-            string discountCode = "";
-            foreach (string i in discountList)
-            {
-                discountCode = i;
-            }
-            File.AppendAllText(discountFilePath, Environment.NewLine + discountCode);
-            discountCodeName.Clear();
-            discountPercentage.Clear();
-        }
+            
+            // Error handling to make sure the user inputs the discount percentage as an int
+            bool errorHandling = int.TryParse(discountPercentage.Text, out int result);
 
+            if (errorHandling == true)
+            {
+                discountList.Add(discountCodeName.Text + "," + discountPercentage.Text);
+                string discountCode = "";
+                foreach (string i in discountList)
+                {
+                    discountCode = i;
+                }
+                File.AppendAllText(discountFilePath, Environment.NewLine + discountCode);
+                discountCodeName.Clear();
+                discountPercentage.Clear();
+                MessageBox.Show("Discount Code Added To Inventory");
+            }
+            else
+            {
+                MessageBox.Show("Discount Percentage Not In Correct Format");
+            }
+        }
         public StackPanel AddProductPanel()
         {
             StackPanel shopInventoryPanel = new StackPanel
@@ -237,6 +248,15 @@ namespace AdminVersion
             Grid.SetRow(uploadImage, 4);
             uploadImage.Click += UploadImage_Click;
 
+            imageFilePathBox = new TextBox
+            {
+                Text = "",
+                Margin = spacing,
+            };
+            shopInventoryPanel.Children.Add(imageFilePathBox);
+            Grid.SetColumn(imageFilePathBox, 1);
+            Grid.SetRow(imageFilePathBox, 5);
+
             Button addProductButton = new Button
             {
                 Content = "Add Product To File",
@@ -244,13 +264,12 @@ namespace AdminVersion
             };
             shopInventoryPanel.Children.Add(addProductButton);
             Grid.SetColumn(addProductButton, 0);
-            Grid.SetRow(addProductButton, 5);
+            Grid.SetRow(addProductButton, 6);
             Grid.SetColumnSpan(addProductButton, 2);
             addProductButton.Click += AddProductButton_Click;
 
             return shopInventoryPanel;
         }
-
         public void UploadImage_Click(object sender, RoutedEventArgs e)
         {
             // Configure open file dialog box
@@ -265,23 +284,36 @@ namespace AdminVersion
             {
                 // Open document
                 imageFileName = dlg.FileName;
+                imageFilePathBox.Text = imageFileName;
             }
         }
-
         private void AddProductButton_Click(object sender, RoutedEventArgs e)
         {
-            productsList.Add(nameBox.Text + "," + descriptionBox.Text + "," + priceBox.Text + "," + imageFileName);
-            var hej = productsList.ToArray();
-            string product = "";
-            foreach (string i in productsList)
+            // Error handling to make sure the user inputs the price as a decimal
+            bool errorHandling = decimal.TryParse(priceBox.Text, out decimal result);
+            if (errorHandling == true)
             {
-                product = i;
+                productsList.Add(nameBox.Text + "," + descriptionBox.Text + "," + priceBox.Text + "," + imageFileName);
+                var hej = productsList.ToArray();
+                string product = "";
+                foreach (string i in productsList)
+                {
+                    product = i;
+                }
+                File.AppendAllText(productFilePath, Environment.NewLine + product);
+                nameBox.Clear();
+                descriptionBox.Clear();
+                priceBox.Clear();
+                imageFileName = "";
+                MessageBox.Show("Product Added To Inventory");
             }
-            File.AppendAllText(productFilePath, Environment.NewLine + product);
-            nameBox.Clear();
-            descriptionBox.Clear();
-            priceBox.Clear();
-            imageFileName = "";
+            else
+            {
+                MessageBox.Show("Price Is Not In Correct Format");
+            }
+
+            
+            
         }
     }
 }
