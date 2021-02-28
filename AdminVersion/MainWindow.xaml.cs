@@ -90,7 +90,7 @@ namespace AdminVersion
             Grid.SetRow(shopInventory, 2);
             Grid.SetRowSpan(shopInventory, 2);
 
-            AddProducts();
+            LoadProducts();
         }
         public StackPanel AddDiscountCodePanel()
         {
@@ -308,8 +308,17 @@ namespace AdminVersion
         {
             // Error handling to make sure the user inputs the price as a decimal
             bool errorHandling = decimal.TryParse(priceBox.Text, out decimal result);
+
             if (errorHandling == true)
             {
+                Product newProduct = new Product
+                {
+                    Name = nameBox.Text,
+                    Description = descriptionBox.Text,
+                    Price = priceBox.Text,
+                    PicturePath = imageFilePathBox.Text,
+                };
+                produktLista.Add(newProduct);
                 foreach (var i in produktLista)
                 {
                     productsList.Add(i.Name + "," + i.Description + "," + i.Price + "," + i.PicturePath + Environment.NewLine);
@@ -319,12 +328,12 @@ namespace AdminVersion
                 {
                     product = i;
                 }
-                File.AppendAllText (productFilePath, product);
+                File.AppendAllText(productFilePath, product);
                 nameBox.Clear();
                 descriptionBox.Clear();
                 priceBox.Clear();
                 imageFilePathBox.Text = " ";
-                
+
                 MessageBox.Show("Product Added To Inventory");
             }
             else
@@ -352,101 +361,102 @@ namespace AdminVersion
 
             return shopInventoryPanel;
         }
-        public void AddProducts()
+        public void LoadProducts()
         {
-            //Reads inventory from .csv-file and creates a grid for each item. Grid is added to shopInventoryPanel.
-            string[] products = File.ReadAllLines(productFilePath);
-            
-            //Saves every line to a stringlist
-            foreach(string i in products)
+            if (!File.Exists(productFilePath))
             {
-                productsList.Add(i);
+                File.Create(productFilePath);
             }
-            
-            foreach (string s in products)
+            else
             {
-                Grid productGrid = new Grid();
-                productGrid.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
-                productGrid.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
-                productGrid.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
-                productGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
-                productGrid.ColumnDefinitions.Add(new ColumnDefinition());
-                productGrid.ColumnDefinitions.Add(new ColumnDefinition());
-                productGrid.ColumnDefinitions.Add(new ColumnDefinition());
-                productGrid.ColumnDefinitions.Add(new ColumnDefinition());
-                shopInventoryPanel.Children.Add(productGrid);
+                //Reads inventory from .csv-file and creates a grid for each item. Grid is added to shopInventoryPanel.
+                string[] products = File.ReadAllLines(productFilePath);
 
-                var productProperties = s.Split(',');
-                Product p = new Product
+                foreach (string s in products)
                 {
-                    Name = productProperties[0],
-                    Description = productProperties[1],
-                    Price = productProperties[2],
-                    PicturePath = productProperties[3]
-                };
-                produktLista.Add(p);
+                    Grid productGrid = new Grid();
+                    productGrid.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
+                    productGrid.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
+                    productGrid.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
+                    productGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
+                    productGrid.ColumnDefinitions.Add(new ColumnDefinition());
+                    productGrid.ColumnDefinitions.Add(new ColumnDefinition());
+                    productGrid.ColumnDefinitions.Add(new ColumnDefinition());
+                    productGrid.ColumnDefinitions.Add(new ColumnDefinition());
+                    shopInventoryPanel.Children.Add(productGrid);
 
-                Image productImage = CreateImage(p.PicturePath);
-                productImage.Stretch = Stretch.Fill;
-                productGrid.Children.Add(productImage);
-                Grid.SetRow(productImage, 0);
-                Grid.SetRowSpan(productImage, 2);
-                Grid.SetColumn(productImage, 0);
+                    var productProperties = s.Split(',');
+                    Product p = new Product
+                    {
+                        Name = productProperties[0],
+                        Description = productProperties[1],
+                        Price = productProperties[2],
+                        PicturePath = productProperties[3]
+                    };
+                    produktLista.Add(p);
 
-                Label productLabel = new Label
-                {
-                    Content = p.Name,
-                    FontSize = 12,
-                    FontWeight = FontWeights.Bold,
-                };
-                productGrid.Children.Add(productLabel);
-                Grid.SetRow(productLabel, 0);
-                Grid.SetColumn(productLabel, 1);
-                Grid.SetColumnSpan(productLabel, 2);
+                    Image productImage = CreateImage(p.PicturePath);
+                    productImage.Stretch = Stretch.Fill;
+                    productGrid.Children.Add(productImage);
+                    Grid.SetRow(productImage, 0);
+                    Grid.SetRowSpan(productImage, 2);
+                    Grid.SetColumn(productImage, 0);
 
-                Label productDescription = new Label
-                {
-                    Content = p.Description,
-                    FontSize = 12,
-                    FontWeight = FontWeights.Regular,
-                };
-                productGrid.Children.Add(productDescription);
-                Grid.SetRow(productDescription, 1);
-                Grid.SetColumn(productDescription, 1);
-                Grid.SetColumnSpan(productDescription, 2);
+                    Label productLabel = new Label
+                    {
+                        Content = p.Name,
+                        FontSize = 12,
+                        FontWeight = FontWeights.Bold,
+                    };
+                    productGrid.Children.Add(productLabel);
+                    Grid.SetRow(productLabel, 0);
+                    Grid.SetColumn(productLabel, 1);
+                    Grid.SetColumnSpan(productLabel, 2);
 
-                Label priceLabel = new Label
-                {
-                    Margin = spacing,
-                    Content = "$" + p.Price,
-                    FontSize = 12
-                };
-                productGrid.Children.Add(priceLabel);
-                Grid.SetRow(priceLabel, 0);
-                Grid.SetColumn(priceLabel, 4);
+                    Label productDescription = new Label
+                    {
+                        Content = p.Description,
+                        FontSize = 12,
+                        FontWeight = FontWeights.Regular,
+                    };
+                    productGrid.Children.Add(productDescription);
+                    Grid.SetRow(productDescription, 1);
+                    Grid.SetColumn(productDescription, 1);
+                    Grid.SetColumnSpan(productDescription, 2);
 
-                Button deleteProduct = new Button
-                {
-                    Content = "Delete",
-                    Margin = spacing,
-                    Tag = p,
-                };
-                productGrid.Children.Add(deleteProduct);
-                Grid.SetRow(deleteProduct, 1);
-                Grid.SetColumn(deleteProduct, 3);
-                deleteProduct.Click += DeleteProduct_Click;
+                    Label priceLabel = new Label
+                    {
+                        Margin = spacing,
+                        Content = "$" + p.Price,
+                        FontSize = 12
+                    };
+                    productGrid.Children.Add(priceLabel);
+                    Grid.SetRow(priceLabel, 0);
+                    Grid.SetColumn(priceLabel, 4);
 
-                Button changeContentButton = new Button
-                {
-                    Content = "Change Content",
-                    Margin = spacing,
-                    Padding = spacing,
-                    Tag = p,
-                };
-                productGrid.Children.Add(changeContentButton);
-                Grid.SetRow(changeContentButton, 1);
-                Grid.SetColumn(changeContentButton, 4);
-                changeContentButton.Click += ChangeContentButton_Click;
+                    Button deleteProduct = new Button
+                    {
+                        Content = "Delete",
+                        Margin = spacing,
+                        Tag = p,
+                    };
+                    productGrid.Children.Add(deleteProduct);
+                    Grid.SetRow(deleteProduct, 1);
+                    Grid.SetColumn(deleteProduct, 3);
+                    deleteProduct.Click += DeleteProduct_Click;
+
+                    Button changeContentButton = new Button
+                    {
+                        Content = "Change Content",
+                        Margin = spacing,
+                        Padding = spacing,
+                        Tag = p,
+                    };
+                    productGrid.Children.Add(changeContentButton);
+                    Grid.SetRow(changeContentButton, 1);
+                    Grid.SetColumn(changeContentButton, 4);
+                    changeContentButton.Click += ChangeContentButton_Click;
+                }
             }
         }
         private void DeleteProduct_Click(object sender, RoutedEventArgs e)
@@ -496,3 +506,4 @@ namespace AdminVersion
         }
     }
 }
+
