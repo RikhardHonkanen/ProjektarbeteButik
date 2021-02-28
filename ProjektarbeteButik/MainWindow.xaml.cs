@@ -19,10 +19,10 @@ namespace ProjektarbeteButik
 {
     public class Product
     {
-        public string Name;
-        public string Description;
-        public decimal Price;
-        public string PicturePath;
+        public string Name { get; set; }
+        public string Description { get; set; }
+        public decimal Price { get; set; }
+        public string PicturePath { get; set; }
     }
     //Class for Receipt objects, used for data grid in CheckOut
     public class Receipt
@@ -279,7 +279,7 @@ namespace ProjektarbeteButik
         public void AddProducts()
         {
             //Reads inventory from .csv-file and creates a grid for each item. Grid is added to shopInventoryPanel.
-            string[] products = File.ReadAllLines("ShopInventory.csv");
+            string[] products = File.ReadAllLines(@"C:\Windows\Temp\ShopInventory.csv");
             foreach (string s in products)
             {
                 Grid productGrid = new Grid();

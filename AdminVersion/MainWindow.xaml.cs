@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -17,20 +18,12 @@ using ProjektarbeteButik;
 
 namespace AdminVersion
 {
-    public class Product
-    {
-        public string Name;
-        public string Description;
-        public string Price;
-        public string PicturePath;
-    }
     public partial class MainWindow : Window
     {
         public Thickness spacing = new Thickness(5);
-
         public const string productFilePath = @"C:\Windows\Temp\ShopInventory.csv";
-        public const string imageFilePath = @"C:\Users\Dan Strandberg\Dropbox\Kod\repos\Teknikhögskolan\Projektarbete\AdminVersion\Images\";
-        public const string discountFilePath = @"C:\Users\Dan Strandberg\Dropbox\Kod\repos\Teknikhögskolan\Projektarbete\ProjektarbeteButik\DiscountCodes.csv";
+        public const string imageFilePath = @"C:\Windows\Temp\ProjektarbeteButikImages\";
+        public const string discountFilePath = @"C:\Windows\Temp\DiscountCodes.csv";
         public TextBox nameBox;
         public TextBox descriptionBox;
         public TextBox priceBox;
@@ -40,10 +33,13 @@ namespace AdminVersion
         public TextBox discountPercentage;
         public TextBox imageFilePathBox;
         public StackPanel shopInventoryPanel;
+        public ListBox discountCodes;
+        public List<string> discountsList = new List<string>();
         public List<Product> produktLista = new List<Product>();
 
         public MainWindow()
         {
+            CultureInfo.CurrentCulture = CultureInfo.InvariantCulture;
             InitializeComponent();
             Start();
         }
@@ -64,13 +60,12 @@ namespace AdminVersion
             // Main grid
             Grid grid = new Grid();
             root.Content = grid;
-            grid.Margin = new Thickness(5);
+            grid.Margin = spacing;
             grid.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
             grid.RowDefinitions.Add(new RowDefinition());
             grid.RowDefinitions.Add(new RowDefinition());
-
             grid.ColumnDefinitions.Add(new ColumnDefinition());
-            grid.ColumnDefinitions.Add(new ColumnDefinition());
+            grid.ColumnDefinitions.Add(new ColumnDefinition());            
 
             StackPanel productAddPanel = AddProductPanel();
             grid.Children.Add(productAddPanel);
@@ -90,8 +85,16 @@ namespace AdminVersion
             Grid.SetRow(shopInventory, 2);
             Grid.SetRowSpan(shopInventory, 2);
 
+            discountCodes = new ListBox { Margin = spacing };
+            grid.Children.Add(discountCodes);
+            Grid.SetColumn(discountCodes, 1);
+            Grid.SetRow(discountCodes, 2);
+            discountCodes.SelectionChanged += DiscountCodes_SelectionChanged;
+
             LoadProducts();
-        }
+            LoadDiscounts();
+        }        
+
         public StackPanel AddDiscountCodePanel()
         {
             StackPanel discountInventoryPanel = new StackPanel
@@ -116,8 +119,8 @@ namespace AdminVersion
                 Margin = spacing,
             };
             discountInventoryPanel.Children.Add(nameLabel);
-            Grid.SetColumn(nameLabel, 0);
-            Grid.SetRow(nameLabel, 1);
+            //Grid.SetColumn(nameLabel, 0);
+            //Grid.SetRow(nameLabel, 1);
 
             discountCodeName = new TextBox
             {
@@ -125,8 +128,8 @@ namespace AdminVersion
                 Margin = spacing,
             };
             discountInventoryPanel.Children.Add(discountCodeName);
-            Grid.SetColumn(discountCodeName, 1);
-            Grid.SetRow(discountCodeName, 1);
+            //Grid.SetColumn(discountCodeName, 1);
+            //Grid.SetRow(discountCodeName, 1);
 
             Label discountPercent = new Label
             {
@@ -134,8 +137,8 @@ namespace AdminVersion
                 Margin = spacing,
             };
             discountInventoryPanel.Children.Add(discountPercent);
-            Grid.SetColumn(discountPercent, 0);
-            Grid.SetRow(discountPercent, 2);
+            //Grid.SetColumn(discountPercent, 0);
+            //Grid.SetRow(discountPercent, 2);
 
             discountPercentage = new TextBox
             {
@@ -143,8 +146,8 @@ namespace AdminVersion
                 Margin = spacing,
             };
             discountInventoryPanel.Children.Add(discountPercentage);
-            Grid.SetColumn(discountPercentage, 1);
-            Grid.SetRow(discountPercentage, 2);
+            //Grid.SetColumn(discountPercentage, 1);
+            //Grid.SetRow(discountPercentage, 2);
 
             Button saveDiscountCode = new Button
             {
@@ -152,31 +155,90 @@ namespace AdminVersion
                 Margin = spacing,
             };
             discountInventoryPanel.Children.Add(saveDiscountCode);
-            Grid.SetColumn(saveDiscountCode, 1);
-            Grid.SetRow(saveDiscountCode, 3);
+            //Grid.SetColumn(saveDiscountCode, 1);
+            //Grid.SetRow(saveDiscountCode, 3);
             saveDiscountCode.Click += SaveDiscountCode_Click;
+
+            Button deleteDiscountCode = new Button
+            {
+                Content = "Delete Discount Code",
+                Margin = spacing,
+            };
+            discountInventoryPanel.Children.Add(deleteDiscountCode);
+            deleteDiscountCode.Click += DeleteDiscountCode;
 
             return discountInventoryPanel;
         }
+
+        private void DeleteDiscountCode(object sender, RoutedEventArgs e)
+        {
+            if (discountCodes.SelectedIndex == -1)
+            {
+
+            }
+            int index = discountCodes.SelectedIndex;
+            try
+            {
+                discountsList.RemoveAt(index);
+            }
+            catch
+            {
+                MessageBox.Show("No discount code selected");
+            }
+            File.WriteAllLines(discountFilePath, discountsList);
+            RefreshDiscounts();
+        }
+
+        public void LoadDiscounts()
+        {
+            string[] discounts = File.ReadAllLines(discountFilePath);
+            foreach (string s in discounts)
+            {
+                discountsList.Add(s);
+            }
+            RefreshDiscounts();
+        }
+        public void RefreshDiscounts()
+        {
+            discountCodes.Items.Clear();
+            discountCodeName.Clear();
+            discountPercentage.Clear();
+            foreach (string s in discountsList)
+            {
+                string[] parts = s.Split(",");
+                double display = Math.Round((1 - double.Parse(parts[1])) * 100);
+                string displayDiscount = "Code: " + parts[0] + " Discount: " + display + "%";
+                discountCodes.Items.Add(displayDiscount);
+            }
+        }
+        private void DiscountCodes_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            //Added try-catch, program crashed on ListBox being updated otherwise
+            try
+            {
+                int index = discountCodes.SelectedIndex;
+                string[] discount = discountsList[index].Split(",");
+                double display = Math.Round((1 - double.Parse(discount[1])) * 100);
+                discountCodeName.Text = discount[0];
+                discountPercentage.Text = display.ToString();
+            }
+            catch
+            {
+
+            }
+        }
         private void SaveDiscountCode_Click(object sender, RoutedEventArgs e)
         {
-            List<string> discountList = new List<string>();
-
             // Error handling to make sure the user inputs the discount percentage as an int
             bool errorHandling = int.TryParse(discountPercentage.Text, out int result);
 
             if (errorHandling == true)
             {
-                discountList.Add(discountCodeName.Text + "," + discountPercentage.Text);
-                string discountCode = "";
-                foreach (string i in discountList)
-                {
-                    discountCode = i;
-                }
-                File.AppendAllText(discountFilePath, Environment.NewLine + discountCode);
-                discountCodeName.Clear();
-                discountPercentage.Clear();
+                double discount = 1 - int.Parse(discountPercentage.Text) * 0.01;
+                discountsList.Add(discountCodeName.Text.ToLower() + "," + discount);
+                File.WriteAllLines(discountFilePath, discountsList);                
                 MessageBox.Show("Discount Code Added To Inventory");
+                RefreshDiscounts();
             }
             else
             {
@@ -315,7 +377,7 @@ namespace AdminVersion
                 {
                     Name = nameBox.Text,
                     Description = descriptionBox.Text,
-                    Price = priceBox.Text,
+                    Price = decimal.Parse(priceBox.Text),
                     PicturePath = imageFilePathBox.Text,
                 };
                 produktLista.Add(newProduct);
@@ -390,7 +452,7 @@ namespace AdminVersion
                     {
                         Name = productProperties[0],
                         Description = productProperties[1],
-                        Price = productProperties[2],
+                        Price = decimal.Parse(productProperties[2]),
                         PicturePath = productProperties[3]
                     };
                     produktLista.Add(p);
@@ -485,7 +547,7 @@ namespace AdminVersion
 
             nameBox.Text = product.Name;
             descriptionBox.Text = product.Description;
-            priceBox.Text = product.Price;
+            priceBox.Text = product.Price.ToString();
             imageFilePathBox.Text = product.PicturePath;
         }
         private Image CreateImage(string filePath)
