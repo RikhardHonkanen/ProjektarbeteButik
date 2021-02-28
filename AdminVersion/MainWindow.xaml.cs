@@ -310,10 +310,7 @@ namespace AdminVersion
             else
             {
                 MessageBox.Show("Price Is Not In Correct Format");
-            }
-
-            
-            
+            }            
         }
     }
 }
