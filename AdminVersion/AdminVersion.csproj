@@ -7,6 +7,28 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <None Remove="Images\61OWxfa8ubL._SL1500_.jpg" />
+    <None Remove="Images\exampleimage.jpg" />
+    <None Remove="Images\exampleimage2.webp" />
+    <None Remove="Images\tallexampleimage.jpg" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Include="Images\61OWxfa8ubL._SL1500_.jpg">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Images\exampleimage.jpg">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Images\exampleimage2.webp">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Images\tallexampleimage.jpg">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="..\ProjektarbeteButik\ProjektarbeteButik.csproj" />
   </ItemGroup>
 

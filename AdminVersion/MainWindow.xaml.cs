@@ -17,12 +17,19 @@ using ProjektarbeteButik;
 
 namespace AdminVersion
 {
+    public class Product
+    {
+        public string Name;
+        public string Description;
+        public string Price;
+        public string PicturePath;
+    }
     public partial class MainWindow : Window
     {
         public Thickness spacing = new Thickness(5);
-        
-        public const string productFilePath = @"C:\Windows\Temp\Products.csv";
-        public const string imageFilePath = @"C:\Users\Dan Strandberg\Dropbox\Kod\repos\Teknikhögskolan\Projektarbete\ProjektarbeteButik\Images\";
+
+        public const string productFilePath = @"C:\Windows\Temp\ShopInventory.csv";
+        public const string imageFilePath = @"C:\Users\Dan Strandberg\Dropbox\Kod\repos\Teknikhögskolan\Projektarbete\AdminVersion\Images\";
         public const string discountFilePath = @"C:\Users\Dan Strandberg\Dropbox\Kod\repos\Teknikhögskolan\Projektarbete\ProjektarbeteButik\DiscountCodes.csv";
         public TextBox nameBox;
         public TextBox descriptionBox;
@@ -32,6 +39,8 @@ namespace AdminVersion
         public TextBox discountCodeName;
         public TextBox discountPercentage;
         public TextBox imageFilePathBox;
+        public StackPanel shopInventoryPanel;
+        public List<Product> produktLista = new List<Product>();
 
         public MainWindow()
         {
@@ -43,8 +52,8 @@ namespace AdminVersion
         {
             // Window options
             Title = "GUI App";
-            Height = 600;
-            Width = 600;
+            Height = 900;
+            Width = 900;
             WindowStartupLocation = WindowStartupLocation.CenterScreen;
 
             // Scrolling
@@ -56,7 +65,7 @@ namespace AdminVersion
             Grid grid = new Grid();
             root.Content = grid;
             grid.Margin = new Thickness(5);
-            grid.RowDefinitions.Add(new RowDefinition());
+            grid.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
             grid.RowDefinitions.Add(new RowDefinition());
             grid.RowDefinitions.Add(new RowDefinition());
 
@@ -73,7 +82,15 @@ namespace AdminVersion
             grid.Children.Add(discountCodePanel);
             Grid.SetColumn(discountCodePanel, 1);
             Grid.SetRow(discountCodePanel, 0);
-            Grid.SetRowSpan(discountCodePanel, 2); 
+            Grid.SetRowSpan(discountCodePanel, 2);
+
+            StackPanel shopInventory = CreateShopInventoryPanel();
+            grid.Children.Add(shopInventory);
+            Grid.SetColumn(shopInventory, 0);
+            Grid.SetRow(shopInventory, 2);
+            Grid.SetRowSpan(shopInventory, 2);
+
+            AddProducts();
         }
         public StackPanel AddDiscountCodePanel()
         {
@@ -144,7 +161,7 @@ namespace AdminVersion
         private void SaveDiscountCode_Click(object sender, RoutedEventArgs e)
         {
             List<string> discountList = new List<string>();
-            
+
             // Error handling to make sure the user inputs the discount percentage as an int
             bool errorHandling = int.TryParse(discountPercentage.Text, out int result);
 
@@ -201,7 +218,7 @@ namespace AdminVersion
             shopInventoryPanel.Children.Add(nameBox);
             Grid.SetColumn(nameBox, 1);
             Grid.SetRow(nameBox, 1);
-            
+
             Label descriptionLabel = new Label
             {
                 Content = "Product Description",
@@ -210,8 +227,8 @@ namespace AdminVersion
             shopInventoryPanel.Children.Add(descriptionLabel);
             Grid.SetColumn(descriptionLabel, 0);
             Grid.SetRow(descriptionLabel, 2);
-            
-            descriptionBox  = new TextBox
+
+            descriptionBox = new TextBox
             {
                 Text = "",
                 Margin = spacing,
@@ -219,7 +236,7 @@ namespace AdminVersion
             shopInventoryPanel.Children.Add(descriptionBox);
             Grid.SetColumn(descriptionBox, 1);
             Grid.SetRow(descriptionBox, 2);
-            
+
             Label priceLabel = new Label
             {
                 Content = "Product Price",
@@ -293,27 +310,189 @@ namespace AdminVersion
             bool errorHandling = decimal.TryParse(priceBox.Text, out decimal result);
             if (errorHandling == true)
             {
-                productsList.Add(nameBox.Text + "," + descriptionBox.Text + "," + priceBox.Text + "," + imageFileName);
-                var hej = productsList.ToArray();
+                foreach (var i in produktLista)
+                {
+                    productsList.Add(i.Name + "," + i.Description + "," + i.Price + "," + i.PicturePath + Environment.NewLine);
+                }
                 string product = "";
                 foreach (string i in productsList)
                 {
                     product = i;
                 }
-                File.AppendAllText(productFilePath, Environment.NewLine + product);
+                File.AppendAllText (productFilePath, product);
                 nameBox.Clear();
                 descriptionBox.Clear();
                 priceBox.Clear();
-                imageFileName = "";
+                imageFilePathBox.Text = " ";
+                
                 MessageBox.Show("Product Added To Inventory");
             }
             else
             {
                 MessageBox.Show("Price Is Not In Correct Format");
             }
+        }
+        public StackPanel CreateShopInventoryPanel()
+        {
+            shopInventoryPanel = new StackPanel
+            {
+                Margin = spacing,
+                Orientation = Orientation.Vertical,
+                Background = Brushes.OldLace
+            };
 
+            Label shopInventoryLabel = new Label
+            {
+                Content = "Shopping Inventory",
+                Margin = spacing,
+                FontSize = 18,
+                HorizontalAlignment = HorizontalAlignment.Center
+            };
+            shopInventoryPanel.Children.Add(shopInventoryLabel);
+
+            return shopInventoryPanel;
+        }
+        public void AddProducts()
+        {
+            //Reads inventory from .csv-file and creates a grid for each item. Grid is added to shopInventoryPanel.
+            string[] products = File.ReadAllLines(productFilePath);
             
+            //Saves every line to a stringlist
+            foreach(string i in products)
+            {
+                productsList.Add(i);
+            }
             
+            foreach (string s in products)
+            {
+                Grid productGrid = new Grid();
+                productGrid.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
+                productGrid.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
+                productGrid.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
+                productGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
+                productGrid.ColumnDefinitions.Add(new ColumnDefinition());
+                productGrid.ColumnDefinitions.Add(new ColumnDefinition());
+                productGrid.ColumnDefinitions.Add(new ColumnDefinition());
+                productGrid.ColumnDefinitions.Add(new ColumnDefinition());
+                shopInventoryPanel.Children.Add(productGrid);
+
+                var productProperties = s.Split(',');
+                Product p = new Product
+                {
+                    Name = productProperties[0],
+                    Description = productProperties[1],
+                    Price = productProperties[2],
+                    PicturePath = productProperties[3]
+                };
+                produktLista.Add(p);
+
+                Image productImage = CreateImage(p.PicturePath);
+                productImage.Stretch = Stretch.Fill;
+                productGrid.Children.Add(productImage);
+                Grid.SetRow(productImage, 0);
+                Grid.SetRowSpan(productImage, 2);
+                Grid.SetColumn(productImage, 0);
+
+                Label productLabel = new Label
+                {
+                    Content = p.Name,
+                    FontSize = 12,
+                    FontWeight = FontWeights.Bold,
+                };
+                productGrid.Children.Add(productLabel);
+                Grid.SetRow(productLabel, 0);
+                Grid.SetColumn(productLabel, 1);
+                Grid.SetColumnSpan(productLabel, 2);
+
+                Label productDescription = new Label
+                {
+                    Content = p.Description,
+                    FontSize = 12,
+                    FontWeight = FontWeights.Regular,
+                };
+                productGrid.Children.Add(productDescription);
+                Grid.SetRow(productDescription, 1);
+                Grid.SetColumn(productDescription, 1);
+                Grid.SetColumnSpan(productDescription, 2);
+
+                Label priceLabel = new Label
+                {
+                    Margin = spacing,
+                    Content = "$" + p.Price,
+                    FontSize = 12
+                };
+                productGrid.Children.Add(priceLabel);
+                Grid.SetRow(priceLabel, 0);
+                Grid.SetColumn(priceLabel, 4);
+
+                Button deleteProduct = new Button
+                {
+                    Content = "Delete",
+                    Margin = spacing,
+                    Tag = p,
+                };
+                productGrid.Children.Add(deleteProduct);
+                Grid.SetRow(deleteProduct, 1);
+                Grid.SetColumn(deleteProduct, 3);
+                deleteProduct.Click += DeleteProduct_Click;
+
+                Button changeContentButton = new Button
+                {
+                    Content = "Change Content",
+                    Margin = spacing,
+                    Padding = spacing,
+                    Tag = p,
+                };
+                productGrid.Children.Add(changeContentButton);
+                Grid.SetRow(changeContentButton, 1);
+                Grid.SetColumn(changeContentButton, 4);
+                changeContentButton.Click += ChangeContentButton_Click;
+            }
+        }
+        private void DeleteProduct_Click(object sender, RoutedEventArgs e)
+        {
+            //Completely removes a product from the inventory
+            Button button = (Button)sender;
+            var product = (Product)button.Tag;
+            produktLista.Remove(product);
+            productsList.Clear();
+
+            foreach (var i in produktLista)
+            {
+                productsList.Add(i.Name + "," + i.Description + "," + i.Price + "," + i.PicturePath + Environment.NewLine);
+            }
+            string produkt = "";
+            foreach (string s in productsList)
+            {
+                produkt += s;
+            }
+            File.WriteAllText(productFilePath, produkt);
+        }
+        private void ChangeContentButton_Click(object sender, RoutedEventArgs e)
+        {
+            Button button = (Button)sender;
+            var product = (Product)button.Tag;
+
+            nameBox.Text = product.Name;
+            descriptionBox.Text = product.Description;
+            priceBox.Text = product.Price;
+            imageFilePathBox.Text = product.PicturePath;
+        }
+        private Image CreateImage(string filePath)
+        {
+            ImageSource source = new BitmapImage(new Uri(filePath, UriKind.Relative));
+            Image image = new Image
+            {
+                Margin = spacing,
+                Source = source,
+                HorizontalAlignment = HorizontalAlignment.Left,
+                VerticalAlignment = VerticalAlignment.Center,
+                //Size of images limited so shop inventory looks uniform
+                MaxHeight = 50,
+                MaxWidth = 50
+            };
+            RenderOptions.SetBitmapScalingMode(image, BitmapScalingMode.HighQuality);
+            return image;
         }
     }
 }
