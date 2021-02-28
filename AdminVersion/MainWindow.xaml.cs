@@ -383,19 +383,14 @@ namespace AdminVersion
                 produktLista.Add(newProduct);
                 foreach (var i in produktLista)
                 {
-                    productsList.Add(i.Name + "," + i.Description + "," + i.Price + "," + i.PicturePath + Environment.NewLine);
+                    productsList.Add(i.Name + "," + i.Description + "," + i.Price + "," + i.PicturePath);
                 }
-                string product = "";
-                foreach (string i in productsList)
-                {
-                    product = i;
-                }
-                File.AppendAllText(productFilePath, product);
+                File.WriteAllLines(productFilePath, productsList);
                 nameBox.Clear();
                 descriptionBox.Clear();
                 priceBox.Clear();
-                imageFilePathBox.Text = " ";
-
+                imageFilePathBox.Text = "";
+                LoadProducts();
                 MessageBox.Show("Product Added To Inventory");
             }
             else
@@ -425,6 +420,9 @@ namespace AdminVersion
         }
         public void LoadProducts()
         {
+            shopInventoryPanel.Children.Clear();
+            produktLista.Clear();
+            productsList.Clear();
             if (!File.Exists(productFilePath))
             {
                 File.Create(productFilePath);
@@ -531,14 +529,10 @@ namespace AdminVersion
 
             foreach (var i in produktLista)
             {
-                productsList.Add(i.Name + "," + i.Description + "," + i.Price + "," + i.PicturePath + Environment.NewLine);
+                productsList.Add(i.Name + "," + i.Description + "," + i.Price + "," + i.PicturePath);
             }
-            string produkt = "";
-            foreach (string s in productsList)
-            {
-                produkt += s;
-            }
-            File.WriteAllText(productFilePath, produkt);
+            File.WriteAllLines(productFilePath, productsList);
+            LoadProducts();
         }
         private void ChangeContentButton_Click(object sender, RoutedEventArgs e)
         {
@@ -552,7 +546,7 @@ namespace AdminVersion
         }
         private Image CreateImage(string filePath)
         {
-            ImageSource source = new BitmapImage(new Uri(filePath, UriKind.Relative));
+            ImageSource source = new BitmapImage(new Uri(filePath, UriKind.Absolute));
             Image image = new Image
             {
                 Margin = spacing,
