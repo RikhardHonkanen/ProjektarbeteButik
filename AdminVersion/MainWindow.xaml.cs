@@ -39,6 +39,7 @@ namespace AdminVersion
 
         public MainWindow()
         {
+            //For push
             CultureInfo.CurrentCulture = CultureInfo.InvariantCulture;
             InitializeComponent();
             Start();
