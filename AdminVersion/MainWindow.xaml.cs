@@ -21,9 +21,9 @@ namespace AdminVersion
     public partial class MainWindow : Window
     {
         public Thickness spacing = new Thickness(5);
-        public const string productFilePath = @"C:\Windows\Temp\ShopInventory.csv";
-        public const string imageFilePath = @"C:\Windows\Temp\ProjektarbeteButikImages\";
-        public const string discountFilePath = @"C:\Windows\Temp\DiscountCodes.csv";
+        public const string productFilePath = @"C:\Windows\Temp\Projektarbetebutik\ShopInventory.csv";
+        public const string imageFilePath = @"C:\Windows\Temp\Projektarbetebutik\ProjektarbeteButikImages\";
+        public const string discountFilePath = @"C:\Windows\Temp\Projektarbetebutik\DiscountCodes.csv";
         public TextBox nameBox;
         public TextBox descriptionBox;
         public TextBox priceBox;
@@ -36,6 +36,7 @@ namespace AdminVersion
         public ListBox discountCodes;
         public List<string> discountsList = new List<string>();
         public List<Product> produktLista = new List<Product>();
+        public Button saveChangesButton;
 
         public MainWindow()
         {
@@ -169,7 +170,6 @@ namespace AdminVersion
 
             return discountInventoryPanel;
         }
-
         private void DeleteDiscountCode(object sender, RoutedEventArgs e)
         {
             if (discountCodes.SelectedIndex == -1)
@@ -188,13 +188,19 @@ namespace AdminVersion
             File.WriteAllLines(discountFilePath, discountsList);
             RefreshDiscounts();
         }
-
         public void LoadDiscounts()
         {
-            string[] discounts = File.ReadAllLines(discountFilePath);
-            foreach (string s in discounts)
+            if (!File.Exists(discountFilePath))
             {
-                discountsList.Add(s);
+                File.Create(discountFilePath);
+            }
+            else
+            {
+                string[] discounts = File.ReadAllLines(discountFilePath);
+                foreach (string s in discounts)
+                {
+                    discountsList.Add(s);
+                }
             }
             RefreshDiscounts();
         }
@@ -347,7 +353,42 @@ namespace AdminVersion
             Grid.SetColumnSpan(addProductButton, 2);
             addProductButton.Click += AddProductButton_Click;
 
+            saveChangesButton = new Button
+            {
+                Content = "Save Changes",
+                Margin = spacing,
+                IsEnabled = false,
+            };
+            shopInventoryPanel.Children.Add(saveChangesButton);
+            Grid.SetColumn(saveChangesButton, 0);
+            Grid.SetRow(saveChangesButton, 7);
+            Grid.SetColumnSpan(saveChangesButton, 2);
+            saveChangesButton.Click += SaveChangesButton_Click;
+
             return shopInventoryPanel;
+        }
+        private void SaveChangesButton_Click(object sender, RoutedEventArgs e)
+        {
+            Button button = (Button)sender;
+            var product = (Product)button.Tag;
+            productsList.Clear();
+
+            // Error handling to make sure the user inputs the price as a decimal
+            bool errorHandling = decimal.TryParse(priceBox.Text, out decimal result);
+
+            if (errorHandling == true)
+            {
+                product.Name = nameBox.Text;
+                product.Description = descriptionBox.Text;
+                product.Price = decimal.Parse(priceBox.Text);
+                product.PicturePath = imageFilePathBox.Text;
+                SaveChangesToProduct(product);
+                MessageBox.Show("Saved Changes To Product");
+            }
+            else
+            {
+                MessageBox.Show("Price Is Not In Correct Format");
+            }
         }
         public void UploadImage_Click(object sender, RoutedEventArgs e)
         {
@@ -380,17 +421,7 @@ namespace AdminVersion
                     Price = decimal.Parse(priceBox.Text),
                     PicturePath = imageFilePathBox.Text,
                 };
-                produktLista.Add(newProduct);
-                foreach (var i in produktLista)
-                {
-                    productsList.Add(i.Name + "," + i.Description + "," + i.Price + "," + i.PicturePath);
-                }
-                File.WriteAllLines(productFilePath, productsList);
-                nameBox.Clear();
-                descriptionBox.Clear();
-                priceBox.Clear();
-                imageFilePathBox.Text = "";
-                LoadProducts();
+                SaveChangesToProduct(newProduct);
                 MessageBox.Show("Product Added To Inventory");
             }
             else
@@ -526,23 +557,20 @@ namespace AdminVersion
             var product = (Product)button.Tag;
             produktLista.Remove(product);
             productsList.Clear();
-
-            foreach (var i in produktLista)
-            {
-                productsList.Add(i.Name + "," + i.Description + "," + i.Price + "," + i.PicturePath);
-            }
-            File.WriteAllLines(productFilePath, productsList);
-            LoadProducts();
+            SaveChangesToProduct(product);
         }
         private void ChangeContentButton_Click(object sender, RoutedEventArgs e)
         {
             Button button = (Button)sender;
             var product = (Product)button.Tag;
+            saveChangesButton.IsEnabled = true;
+            saveChangesButton.Tag = product;
 
             nameBox.Text = product.Name;
             descriptionBox.Text = product.Description;
             priceBox.Text = product.Price.ToString();
             imageFilePathBox.Text = product.PicturePath;
+            
         }
         private Image CreateImage(string filePath)
         {
@@ -559,6 +587,19 @@ namespace AdminVersion
             };
             RenderOptions.SetBitmapScalingMode(image, BitmapScalingMode.HighQuality);
             return image;
+        }
+        public void SaveChangesToProduct(Product product)
+        {
+            foreach (var i in produktLista)
+            {
+                productsList.Add(i.Name + "," + i.Description + "," + i.Price + "," + i.PicturePath);
+            }
+            File.WriteAllLines(productFilePath, productsList);
+            nameBox.Clear();
+            descriptionBox.Clear();
+            priceBox.Clear();
+            imageFilePathBox.Text = "";
+            LoadProducts();
         }
     }
 }
