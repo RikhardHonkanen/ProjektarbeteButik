@@ -21,21 +21,21 @@ namespace AdminVersion
     public partial class MainWindow : Window
     {
         public Thickness spacing = new Thickness(5);
-        public const string productFilePath = @"C:\Windows\Temp\ShopInventory.csv";
-        public const string imageFilePath = @"C:\Windows\Temp\ProjektarbeteButikImages\";
-        public const string discountFilePath = @"C:\Windows\Temp\DiscountCodes.csv";
+        public const string productFilePath = @"C:\Windows\Temp\ProjektarbeteButik\ShopInventory.csv";
+        public const string imageFilePath = @"C:\Windows\Temp\ProjektarbeteButik\ProjektarbeteButikImages\";
+        public const string discountFilePath = @"C:\Windows\Temp\ProjektarbeteButik\DiscountCodes.csv";
         public TextBox nameBox;
         public TextBox descriptionBox;
         public TextBox priceBox;
-        public List<string> productsList = new List<string>();
+        public TextBox imageFilePathBox;
         public string imageFileName;
         public TextBox discountCodeName;
         public TextBox discountPercentage;
-        public TextBox imageFilePathBox;
         public StackPanel shopInventoryPanel;
         public ListBox discountCodes;
+        public Button saveChangesButton;
         public List<string> discountsList = new List<string>();
-        public List<Product> produktLista = new List<Product>();
+        public List<Product> productsList = new List<Product>();        
 
         public MainWindow()
         {
@@ -119,8 +119,6 @@ namespace AdminVersion
                 Margin = spacing,
             };
             discountInventoryPanel.Children.Add(nameLabel);
-            //Grid.SetColumn(nameLabel, 0);
-            //Grid.SetRow(nameLabel, 1);
 
             discountCodeName = new TextBox
             {
@@ -128,8 +126,6 @@ namespace AdminVersion
                 Margin = spacing,
             };
             discountInventoryPanel.Children.Add(discountCodeName);
-            //Grid.SetColumn(discountCodeName, 1);
-            //Grid.SetRow(discountCodeName, 1);
 
             Label discountPercent = new Label
             {
@@ -137,8 +133,6 @@ namespace AdminVersion
                 Margin = spacing,
             };
             discountInventoryPanel.Children.Add(discountPercent);
-            //Grid.SetColumn(discountPercent, 0);
-            //Grid.SetRow(discountPercent, 2);
 
             discountPercentage = new TextBox
             {
@@ -146,8 +140,6 @@ namespace AdminVersion
                 Margin = spacing,
             };
             discountInventoryPanel.Children.Add(discountPercentage);
-            //Grid.SetColumn(discountPercentage, 1);
-            //Grid.SetRow(discountPercentage, 2);
 
             Button saveDiscountCode = new Button
             {
@@ -155,8 +147,6 @@ namespace AdminVersion
                 Margin = spacing,
             };
             discountInventoryPanel.Children.Add(saveDiscountCode);
-            //Grid.SetColumn(saveDiscountCode, 1);
-            //Grid.SetRow(saveDiscountCode, 3);
             saveDiscountCode.Click += SaveDiscountCode_Click;
 
             Button deleteDiscountCode = new Button
@@ -191,10 +181,17 @@ namespace AdminVersion
 
         public void LoadDiscounts()
         {
-            string[] discounts = File.ReadAllLines(discountFilePath);
-            foreach (string s in discounts)
+            if (!File.Exists(discountFilePath))
             {
-                discountsList.Add(s);
+                File.Create(discountFilePath);
+            }
+            else
+            {
+                string[] discounts = File.ReadAllLines(discountFilePath);
+                foreach (string s in discounts)
+                {
+                    discountsList.Add(s);
+                }
             }
             RefreshDiscounts();
         }
@@ -269,8 +266,6 @@ namespace AdminVersion
                 Margin = spacing,
             };
             shopInventoryPanel.Children.Add(nameLabel);
-            Grid.SetColumn(nameLabel, 0);
-            Grid.SetRow(nameLabel, 1);
 
             nameBox = new TextBox
             {
@@ -278,8 +273,6 @@ namespace AdminVersion
                 Margin = spacing,
             };
             shopInventoryPanel.Children.Add(nameBox);
-            Grid.SetColumn(nameBox, 1);
-            Grid.SetRow(nameBox, 1);
 
             Label descriptionLabel = new Label
             {
@@ -287,8 +280,6 @@ namespace AdminVersion
                 Margin = spacing,
             };
             shopInventoryPanel.Children.Add(descriptionLabel);
-            Grid.SetColumn(descriptionLabel, 0);
-            Grid.SetRow(descriptionLabel, 2);
 
             descriptionBox = new TextBox
             {
@@ -296,8 +287,6 @@ namespace AdminVersion
                 Margin = spacing,
             };
             shopInventoryPanel.Children.Add(descriptionBox);
-            Grid.SetColumn(descriptionBox, 1);
-            Grid.SetRow(descriptionBox, 2);
 
             Label priceLabel = new Label
             {
@@ -305,8 +294,6 @@ namespace AdminVersion
                 Margin = spacing,
             };
             shopInventoryPanel.Children.Add(priceLabel);
-            Grid.SetColumn(priceLabel, 0);
-            Grid.SetRow(priceLabel, 3);
 
             priceBox = new TextBox
             {
@@ -314,8 +301,6 @@ namespace AdminVersion
                 Margin = spacing,
             };
             shopInventoryPanel.Children.Add(priceBox);
-            Grid.SetColumn(priceBox, 1);
-            Grid.SetRow(priceBox, 3);
 
             Button uploadImage = new Button
             {
@@ -323,8 +308,6 @@ namespace AdminVersion
                 Margin = spacing,
             };
             shopInventoryPanel.Children.Add(uploadImage);
-            Grid.SetColumn(uploadImage, 1);
-            Grid.SetRow(uploadImage, 4);
             uploadImage.Click += UploadImage_Click;
 
             imageFilePathBox = new TextBox
@@ -333,8 +316,6 @@ namespace AdminVersion
                 Margin = spacing,
             };
             shopInventoryPanel.Children.Add(imageFilePathBox);
-            Grid.SetColumn(imageFilePathBox, 1);
-            Grid.SetRow(imageFilePathBox, 5);
 
             Button addProductButton = new Button
             {
@@ -342,13 +323,33 @@ namespace AdminVersion
                 Margin = spacing,
             };
             shopInventoryPanel.Children.Add(addProductButton);
-            Grid.SetColumn(addProductButton, 0);
-            Grid.SetRow(addProductButton, 6);
-            Grid.SetColumnSpan(addProductButton, 2);
             addProductButton.Click += AddProductButton_Click;
+
+            saveChangesButton = new Button
+            {
+                Content = "Save Changes to Product",
+                Margin = spacing,
+                IsEnabled = false,
+                Tag = null,
+            };
+            shopInventoryPanel.Children.Add(saveChangesButton);
+            saveChangesButton.Click += SaveChangesButton_Click;
 
             return shopInventoryPanel;
         }
+
+        private void SaveChangesButton_Click(object sender, RoutedEventArgs e)
+        {
+            Button button = (Button)sender;
+            var product = (Product)button.Tag;
+            product.Name = nameBox.Text;
+            product.Description = descriptionBox.Text;
+            product.Price = decimal.Parse(priceBox.Text);
+            product.PicturePath = imageFilePathBox.Text;
+            MessageBox.Show("Changes Saved");
+            SaveProductsToFile();
+        }
+
         public void UploadImage_Click(object sender, RoutedEventArgs e)
         {
             // Configure open file dialog box
@@ -380,23 +381,28 @@ namespace AdminVersion
                     Price = decimal.Parse(priceBox.Text),
                     PicturePath = imageFilePathBox.Text,
                 };
-                produktLista.Add(newProduct);
-                foreach (var i in produktLista)
-                {
-                    productsList.Add(i.Name + "," + i.Description + "," + i.Price + "," + i.PicturePath);
-                }
-                File.WriteAllLines(productFilePath, productsList);
-                nameBox.Clear();
-                descriptionBox.Clear();
-                priceBox.Clear();
-                imageFilePathBox.Text = "";
-                LoadProducts();
+                productsList.Add(newProduct);
+                SaveProductsToFile();
                 MessageBox.Show("Product Added To Inventory");
             }
             else
             {
                 MessageBox.Show("Price Is Not In Correct Format");
             }
+        }
+        public void SaveProductsToFile()
+        {
+            List<string> productsToFileList = new List<string>();
+            foreach (var i in productsList)
+            {
+                productsToFileList.Add(i.Name + "," + i.Description + "," + i.Price + "," + i.PicturePath);
+            }
+            File.WriteAllLines(productFilePath, productsToFileList);
+            nameBox.Clear();
+            descriptionBox.Clear();
+            priceBox.Clear();
+            imageFilePathBox.Text = "";
+            LoadProducts();
         }
         public StackPanel CreateShopInventoryPanel()
         {
@@ -421,8 +427,8 @@ namespace AdminVersion
         public void LoadProducts()
         {
             shopInventoryPanel.Children.Clear();
-            produktLista.Clear();
             productsList.Clear();
+            saveChangesButton.IsEnabled = false;
             if (!File.Exists(productFilePath))
             {
                 File.Create(productFilePath);
@@ -453,7 +459,7 @@ namespace AdminVersion
                         Price = decimal.Parse(productProperties[2]),
                         PicturePath = productProperties[3]
                     };
-                    produktLista.Add(p);
+                    productsList.Add(p);
 
                     Image productImage = CreateImage(p.PicturePath);
                     productImage.Stretch = Stretch.Fill;
@@ -524,20 +530,15 @@ namespace AdminVersion
             //Completely removes a product from the inventory
             Button button = (Button)sender;
             var product = (Product)button.Tag;
-            produktLista.Remove(product);
-            productsList.Clear();
-
-            foreach (var i in produktLista)
-            {
-                productsList.Add(i.Name + "," + i.Description + "," + i.Price + "," + i.PicturePath);
-            }
-            File.WriteAllLines(productFilePath, productsList);
-            LoadProducts();
+            productsList.Remove(product);
+            SaveProductsToFile();
         }
         private void ChangeContentButton_Click(object sender, RoutedEventArgs e)
         {
             Button button = (Button)sender;
             var product = (Product)button.Tag;
+            saveChangesButton.IsEnabled = true;
+            saveChangesButton.Tag = product;
 
             nameBox.Text = product.Name;
             descriptionBox.Text = product.Description;
