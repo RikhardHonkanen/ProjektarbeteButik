@@ -319,11 +319,13 @@ namespace ProjektarbeteButik
                 Grid.SetRow(productLabel, 0);
                 Grid.SetColumn(productLabel, 1);
 
-                Label productDescription = new Label
+                TextBlock productDescription = new TextBlock
                 {
-                    Content = p.Description,
+                    Text = p.Description,
                     FontSize = 12,
-                    FontWeight = FontWeights.Regular,
+                    FontWeight = FontWeights.Normal,
+                    FontStyle = FontStyles.Italic,
+                    TextWrapping = TextWrapping.Wrap
                 };
                 productGrid.Children.Add(productDescription);
                 Grid.SetRow(productDescription, 1);
@@ -720,7 +722,7 @@ namespace ProjektarbeteButik
 
                     receiptLabel = new Label
                     {
-                        Content = "Discount: $" + (subTotal - totalCost) + "(" + (int)((1 - discountCodes[couponTextBox.Text.ToLower()]) * 100) +" %)"
+                        Content = "Discount: $" + (subTotal - totalCost) + " (" + (int)((1 - discountCodes[couponTextBox.Text.ToLower()]) * 100) +"%)"
                     };
                     receiptPanel.Children.Add(receiptLabel);
                     Grid.SetRow(receiptLabel, 7);
