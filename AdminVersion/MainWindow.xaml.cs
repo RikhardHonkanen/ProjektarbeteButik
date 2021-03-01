@@ -34,12 +34,12 @@ namespace AdminVersion
         public StackPanel shopInventoryPanel;
         public ListBox discountCodes;
         public Button saveChangesButton;
+        public Button changeDiscountCode;
         public List<string> discountsList = new List<string>();
         public List<Product> productsList = new List<Product>();        
 
         public MainWindow()
         {
-            //For push
             CultureInfo.CurrentCulture = CultureInfo.InvariantCulture;
             InitializeComponent();
             Start();
@@ -191,6 +191,26 @@ namespace AdminVersion
 
             return shopInventoryPanel;
         }
+        public StackPanel CreateShopInventoryPanel()
+        {
+            shopInventoryPanel = new StackPanel
+            {
+                Margin = spacing,
+                Orientation = Orientation.Vertical,
+                Background = Brushes.OldLace
+            };
+
+            Label shopInventoryLabel = new Label
+            {
+                Content = "Shopping Inventory",
+                Margin = spacing,
+                FontSize = 18,
+                HorizontalAlignment = HorizontalAlignment.Center
+            };
+            shopInventoryPanel.Children.Add(shopInventoryLabel);
+
+            return shopInventoryPanel;
+        }
         public void LoadProducts()
         {
             shopInventoryPanel.Children.Clear();
@@ -307,26 +327,6 @@ namespace AdminVersion
                 }
             }
         }
-        public StackPanel CreateShopInventoryPanel()
-        {
-            shopInventoryPanel = new StackPanel
-            {
-                Margin = spacing,
-                Orientation = Orientation.Vertical,
-                Background = Brushes.OldLace
-            };
-
-            Label shopInventoryLabel = new Label
-            {
-                Content = "Shopping Inventory",
-                Margin = spacing,
-                FontSize = 18,
-                HorizontalAlignment = HorizontalAlignment.Center
-            };
-            shopInventoryPanel.Children.Add(shopInventoryLabel);
-
-            return shopInventoryPanel;
-        }
         public void UploadImage_Click(object sender, RoutedEventArgs e)
         {
             // Configure open file dialog box
@@ -353,7 +353,7 @@ namespace AdminVersion
             bool errorHandling = decimal.TryParse(priceBox.Text, out decimal result);
             if (errorHandling)
             {
-                if (nameBox.Text != "" && descriptionBox.Text != "")
+                if (nameBox.Text != "" && descriptionBox.Text != "" && !nameBox.Text.Contains(",") && !descriptionBox.Text.Contains(","))
                 {
                     Product newProduct = new Product
                     {
@@ -366,9 +366,13 @@ namespace AdminVersion
                     SaveProductsToFile();
                     MessageBox.Show("Product Added To Inventory");
                 }
-                else
+                else if (nameBox.Text == "" || descriptionBox.Text == "")
                 {
                     MessageBox.Show("Please enter Name and Description");
+                }
+                else
+                {
+                    MessageBox.Show("Name or product description can not contain a ','");
                 }
             }
             else
@@ -390,14 +394,6 @@ namespace AdminVersion
             imageFilePathBox.Text = "";
             LoadProducts();
         }
-        private void DeleteProduct_Click(object sender, RoutedEventArgs e)
-        {
-            //Completely removes a product from the inventory
-            Button button = (Button)sender;
-            var product = (Product)button.Tag;
-            productsList.Remove(product);
-            SaveProductsToFile();
-        }
         private void ChangeContentButton_Click(object sender, RoutedEventArgs e)
         {
             Button button = (Button)sender;
@@ -410,6 +406,14 @@ namespace AdminVersion
             priceBox.Text = product.Price.ToString();
             imageFilePathBox.Text = product.PicturePath;
         }
+        private void DeleteProduct_Click(object sender, RoutedEventArgs e)
+        {
+            //Completely removes a product from the inventory
+            Button button = (Button)sender;
+            var product = (Product)button.Tag;
+            productsList.Remove(product);
+            SaveProductsToFile();
+        }
         private void SaveChangesButton_Click(object sender, RoutedEventArgs e)
         {
             Button button = (Button)sender;
@@ -417,18 +421,22 @@ namespace AdminVersion
             bool errorHandling = decimal.TryParse(priceBox.Text, out decimal result);
             if (errorHandling)
             {
-                if (nameBox.Text != "" && descriptionBox.Text != "")
+                if (nameBox.Text != "" && descriptionBox.Text != "" && !nameBox.Text.Contains(",") && !descriptionBox.Text.Contains(","))
                 {
                     product.Name = nameBox.Text;
                     product.Description = descriptionBox.Text;
                     product.Price = decimal.Parse(priceBox.Text);
                     product.PicturePath = imageFilePathBox.Text;
-                    MessageBox.Show("Changes Saved");
                     SaveProductsToFile();
+                    MessageBox.Show("Changes Saved");
+                }
+                else if (nameBox.Text == "" || descriptionBox.Text == "")
+                {
+                    MessageBox.Show("Please enter Name and Description");
                 }
                 else
                 {
-                    MessageBox.Show("Please enter Name and Description");
+                    MessageBox.Show("Name or product description can not contain a ','");
                 }
             }
             else
@@ -498,6 +506,15 @@ namespace AdminVersion
             discountInventoryPanel.Children.Add(deleteDiscountCode);
             deleteDiscountCode.Click += DeleteDiscountCode;
 
+            changeDiscountCode = new Button
+            {
+                Content = "Save Changes To Discount Code",
+                Margin = spacing,
+                IsEnabled = false,
+            };
+            discountInventoryPanel.Children.Add(changeDiscountCode);
+            changeDiscountCode.Click += ChangeDiscountCode_Click;
+
             return discountInventoryPanel;
         }
         public void LoadDiscounts()
@@ -515,6 +532,33 @@ namespace AdminVersion
                 }
             }
             RefreshDiscounts();
+        }
+        private void SaveDiscountCode_Click(object sender, RoutedEventArgs e)
+        {
+            // Error handling to make sure the user inputs the discount percentage as an int
+            bool errorHandling = double.TryParse(discountPercentage.Text, out double result);
+
+            if (errorHandling == true && !discountCodeName.Text.Contains(",") && discountCodeName.Text != "")
+            {
+                double discount = 1 - double.Parse(discountPercentage.Text) * 0.01;
+                discountsList.Add(discountCodeName.Text.ToLower() + "," + discount);
+                File.WriteAllLines(discountFilePath, discountsList);
+                RefreshDiscounts();
+                MessageBox.Show("Discount Code Added To Inventory");
+            }
+            else if (errorHandling == false)
+            {
+                MessageBox.Show("Discount Percentage Not In Correct Format");
+            }
+            else if (discountCodeName.Text.Contains(","))
+            {
+                MessageBox.Show("Discount Code Name Can Not Contain ','");
+            }
+            else if (discountCodeName.Text != "")
+            {
+                MessageBox.Show("Discount Name Can Not Be Empty");
+            }
+            changeDiscountCode.IsEnabled = false;
         }
         private void DeleteDiscountCode(object sender, RoutedEventArgs e)
         {
@@ -563,23 +607,34 @@ namespace AdminVersion
 
             }
         }
-        private void SaveDiscountCode_Click(object sender, RoutedEventArgs e)
+        private void ChangeDiscountCode_Click(object sender, RoutedEventArgs e)
         {
             // Error handling to make sure the user inputs the discount percentage as an int
-            bool errorHandling = int.TryParse(discountPercentage.Text, out int result);
+            bool errorHandling = double.TryParse(discountPercentage.Text, out double result);
 
-            if (errorHandling == true)
+            if (errorHandling == true && !discountCodeName.Text.Contains(",") && discountCodeName.Text != "")
             {
-                double discount = 1 - int.Parse(discountPercentage.Text) * 0.01;
-                discountsList.Add(discountCodeName.Text.ToLower() + "," + discount);
-                File.WriteAllLines(discountFilePath, discountsList);                
-                MessageBox.Show("Discount Code Added To Inventory");
+                int index = discountCodes.SelectedIndex;
+                string[] discountArr = discountsList[index].Split(",");
+                double discount = 1 - double.Parse(discountPercentage.Text) * 0.01;
+                discountsList[index] = discountCodeName.Text.ToLower() + "," + discount;
+                File.WriteAllLines(discountFilePath, discountsList);
                 RefreshDiscounts();
+                MessageBox.Show("Discount Code Added To Inventory");
             }
-            else
+            else if (errorHandling == false)
             {
                 MessageBox.Show("Discount Percentage Not In Correct Format");
             }
+            else if (discountCodeName.Text.Contains(","))
+            {
+                MessageBox.Show("Discount Code Name Can Not Contain ','");
+            }
+            else if (discountCodeName.Text != "")
+            {
+                MessageBox.Show("Discount Name Can Not Be Empty");
+            }
+            changeDiscountCode.IsEnabled = false;
         }
         private Image CreateImage(string filePath)
         {
