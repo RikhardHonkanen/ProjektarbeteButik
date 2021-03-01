@@ -36,7 +36,7 @@ namespace ProjektarbeteButik
     {
         //Instance variables further explained later (where necessary)
         public Thickness spacing = new Thickness(5);
-        public const string cartFilePath = @"C:\Windows\Temp\ProjektarbeteButik\TheExcellentCart.csv";
+        public const string cartFilePath = @"C:\Windows\Temp\TheExcellentCart.csv";
         public StackPanel shopInventoryPanel;
         public StackPanel cartInventoryPanel;
         public StackPanel receiptPanel;
