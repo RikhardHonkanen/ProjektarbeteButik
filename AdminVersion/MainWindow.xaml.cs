@@ -524,12 +524,12 @@ namespace AdminVersion
         private void SaveDiscountCode(object sender, RoutedEventArgs e)
         {
             // Error handling to make sure the user inputs the discount percentage as an int
-            bool errorHandling = double.TryParse(discountPercentage.Text, out double result);
+            bool errorHandling = int.TryParse(discountPercentage.Text, out int result);
 
             if (errorHandling)
             {
                 //Discount converted from a percentage to a multiplier between 0 and 1
-                double discount = 1 - double.Parse(discountPercentage.Text) * 0.01;
+                double discount = 1 - int.Parse(discountPercentage.Text) * 0.01;
                 if (!discountCodeName.Text.Contains(",") && discountCodeName.Text != "" && discount > 0.01 && 1 >= discount)
                 {
                     discountsList.Add(discountCodeName.Text.ToLower() + "," + discount);
@@ -552,7 +552,7 @@ namespace AdminVersion
             }
             else
             {
-                MessageBox.Show("Discount Percentage must be a number between 1 and 100");
+                MessageBox.Show("Discount Percentage must be an integer between 1 and 100");
             }
         }
         private void DeleteDiscountCode(object sender, RoutedEventArgs e)
@@ -604,13 +604,13 @@ namespace AdminVersion
         private void ChangeDiscountCode(object sender, RoutedEventArgs e)
         {
             // Error handling to make sure the user inputs the discount percentage as an int
-            bool errorHandling = double.TryParse(discountPercentage.Text, out double result);
+            bool errorHandling = int.TryParse(discountPercentage.Text, out int result);
             
             if (errorHandling)
             {
                 int index = discountCodes.SelectedIndex;
                 //Discount converted from a percentage to a multiplier between 0 and 1
-                double discount = 1 - double.Parse(discountPercentage.Text) * 0.01;
+                double discount = 1 - int.Parse(discountPercentage.Text) * 0.01;
                 if (!discountCodeName.Text.Contains(",") && discountCodeName.Text != "" && discount > 0.01 && 1 >= discount)
                 {
                     discountsList[index] = discountCodeName.Text.ToLower() + "," + discount;
@@ -633,7 +633,7 @@ namespace AdminVersion
             }
             else
             {
-                MessageBox.Show("Discount Percentage must be a number between 1 and 100");
+                MessageBox.Show("Discount Percentage must be an integer between 1 and 100");
             }
         }
         private Image CreateImage(string filePath)
