@@ -51,22 +51,17 @@ namespace AdminVersion
             Title = "GUI App";
             Height = 900;
             Width = 900;
-            WindowStartupLocation = WindowStartupLocation.CenterScreen;
-
-            // Scrolling
-            ScrollViewer root = new ScrollViewer();
-            root.VerticalScrollBarVisibility = ScrollBarVisibility.Auto;
-            Content = root;
+            WindowStartupLocation = WindowStartupLocation.CenterScreen;            
 
             // Main grid
-            Grid grid = new Grid();
-            root.Content = grid;
+            Grid grid = new Grid();            
             grid.Margin = spacing;
             grid.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
             grid.RowDefinitions.Add(new RowDefinition());
             grid.RowDefinitions.Add(new RowDefinition());
             grid.ColumnDefinitions.Add(new ColumnDefinition());
-            grid.ColumnDefinitions.Add(new ColumnDefinition());              
+            grid.ColumnDefinitions.Add(new ColumnDefinition());
+            Content = grid;
 
             StackPanel productAddPanel = AddProductPanel();
             grid.Children.Add(productAddPanel);
@@ -79,12 +74,16 @@ namespace AdminVersion
             Grid.SetColumn(discountCodePanel, 1);
             Grid.SetRow(discountCodePanel, 0);
             Grid.SetRowSpan(discountCodePanel, 2);
-            
+
+            ScrollViewer inventoryScroller = new ScrollViewer();
+            grid.Children.Add(inventoryScroller);
+            Grid.SetColumn(inventoryScroller, 0);
+            Grid.SetRow(inventoryScroller, 2);
+            inventoryScroller.VerticalScrollBarVisibility = ScrollBarVisibility.Auto;
+            inventoryScroller.CanContentScroll = true;
+
             StackPanel shopInventory = CreateShopInventoryPanel();
-            grid.Children.Add(shopInventory);
-            Grid.SetColumn(shopInventory, 0);
-            Grid.SetRow(shopInventory, 2);
-            Grid.SetRowSpan(shopInventory, 2);
+            inventoryScroller.Content = shopInventory;
 
             discountCodes = new ListBox { Margin = spacing };
             grid.Children.Add(discountCodes);
@@ -197,7 +196,7 @@ namespace AdminVersion
             {
                 Margin = spacing,
                 Orientation = Orientation.Vertical,
-                Background = Brushes.OldLace
+                Background = Brushes.OldLace                
             };
 
             Label shopInventoryLabel = new Label
@@ -615,7 +614,6 @@ namespace AdminVersion
             if (errorHandling == true && !discountCodeName.Text.Contains(",") && discountCodeName.Text != "")
             {
                 int index = discountCodes.SelectedIndex;
-                string[] discountArr = discountsList[index].Split(",");
                 double discount = 1 - double.Parse(discountPercentage.Text) * 0.01;
                 discountsList[index] = discountCodeName.Text.ToLower() + "," + discount;
                 File.WriteAllLines(discountFilePath, discountsList);
