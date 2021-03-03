@@ -759,8 +759,8 @@ namespace ProjektarbeteButik
                 HorizontalAlignment = HorizontalAlignment.Left,
                 VerticalAlignment = VerticalAlignment.Center,
                 //Size of images limited so shop inventory looks uniform
-                MaxHeight = 50,
-                MaxWidth = 50
+                MaxHeight = 70,
+                MaxWidth = 70
             };
             RenderOptions.SetBitmapScalingMode(image, BitmapScalingMode.HighQuality);
             return image;
