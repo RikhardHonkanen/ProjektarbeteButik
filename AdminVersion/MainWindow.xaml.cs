@@ -116,6 +116,101 @@ namespace AdminVersion
 
             return shopInventoryPanel;
         }
+        public StackPanel AddProductPanel()
+        {
+            StackPanel shopInventoryPanel = new StackPanel
+            {
+                Margin = spacing,
+                Orientation = Orientation.Vertical,
+                Background = Brushes.OldLace
+            };
+
+            Label shopInventoryLabel = new Label
+            {
+                Content = "Add Product",
+                Margin = spacing,
+                FontSize = 18,
+                HorizontalAlignment = HorizontalAlignment.Center
+            };
+            shopInventoryPanel.Children.Add(shopInventoryLabel);
+
+            Label nameLabel = new Label
+            {
+                Content = "Product Name",
+                Margin = spacing,
+            };
+            shopInventoryPanel.Children.Add(nameLabel);
+
+            nameBox = new TextBox
+            {
+                Text = "",
+                Margin = spacing,
+            };
+            shopInventoryPanel.Children.Add(nameBox);
+
+            Label descriptionLabel = new Label
+            {
+                Content = "Product Description",
+                Margin = spacing,
+            };
+            shopInventoryPanel.Children.Add(descriptionLabel);
+
+            descriptionBox = new TextBox
+            {
+                Text = "",
+                Margin = spacing,
+            };
+            shopInventoryPanel.Children.Add(descriptionBox);
+
+            Label priceLabel = new Label
+            {
+                Content = "Product Price",
+                Margin = spacing,
+            };
+            shopInventoryPanel.Children.Add(priceLabel);
+
+            priceBox = new TextBox
+            {
+                Text = "",
+                Margin = spacing,
+            };
+            shopInventoryPanel.Children.Add(priceBox);
+
+            Button uploadImage = new Button
+            {
+                Content = "Upload Image",
+                Margin = spacing,
+            };
+            shopInventoryPanel.Children.Add(uploadImage);
+            uploadImage.Click += UploadImage_Click;
+
+            imageFilePathBox = new TextBox
+            {
+                Text = "",
+                Margin = spacing,
+            };
+            shopInventoryPanel.Children.Add(imageFilePathBox);
+
+            Button addProductButton = new Button
+            {
+                Content = "Add Product To File",
+                Margin = spacing,
+            };
+            shopInventoryPanel.Children.Add(addProductButton);
+            addProductButton.Click += AddProductButton_Click;
+
+            saveChangesButton = new Button
+            {
+                Content = "Save Changes to Product",
+                Margin = spacing,
+                IsEnabled = false,
+                Tag = null,
+            };
+            shopInventoryPanel.Children.Add(saveChangesButton);
+            saveChangesButton.Click += SaveChangesButton_Click;
+
+            return shopInventoryPanel;
+        }
         public void LoadProducts()
         {
             shopInventoryPanel.Children.Clear();
@@ -221,100 +316,22 @@ namespace AdminVersion
             }
         }
 
-        public StackPanel AddProductPanel()
+        public void UploadImage_Click(object sender, RoutedEventArgs e)
         {
-            StackPanel shopInventoryPanel = new StackPanel
-            {
-                Margin = spacing,
-                Orientation = Orientation.Vertical,
-                Background = Brushes.OldLace
-            };
+            // Configure open file dialog box
+            Microsoft.Win32.OpenFileDialog dlg = new Microsoft.Win32.OpenFileDialog();
+            dlg.FileName = "Document"; // Default file name
 
-            Label shopInventoryLabel = new Label
-            {
-                Content = "Add Product",
-                Margin = spacing,
-                FontSize = 18,
-                HorizontalAlignment = HorizontalAlignment.Center
-            };
-            shopInventoryPanel.Children.Add(shopInventoryLabel);
+            // Show open file dialog box
+            Nullable<bool> result = dlg.ShowDialog();
 
-            Label nameLabel = new Label
+            // Process open file dialog box results
+            if (result == true)
             {
-                Content = "Product Name",
-                Margin = spacing,
-            };
-            shopInventoryPanel.Children.Add(nameLabel);
-
-            nameBox = new TextBox
-            {
-                Text = "",
-                Margin = spacing,
-            };
-            shopInventoryPanel.Children.Add(nameBox);
-
-            Label descriptionLabel = new Label
-            {
-                Content = "Product Description",
-                Margin = spacing,
-            };
-            shopInventoryPanel.Children.Add(descriptionLabel);
-
-            descriptionBox = new TextBox
-            {
-                Text = "",
-                Margin = spacing,
-            };
-            shopInventoryPanel.Children.Add(descriptionBox);
-
-            Label priceLabel = new Label
-            {
-                Content = "Product Price",
-                Margin = spacing,
-            };
-            shopInventoryPanel.Children.Add(priceLabel);
-
-            priceBox = new TextBox
-            {
-                Text = "",
-                Margin = spacing,
-            };
-            shopInventoryPanel.Children.Add(priceBox);
-
-            Button uploadImage = new Button
-            {
-                Content = "Upload Image",
-                Margin = spacing,
-            };
-            shopInventoryPanel.Children.Add(uploadImage);
-            uploadImage.Click += UploadImage_Click;
-
-            imageFilePathBox = new TextBox
-            {
-                Text = "",
-                Margin = spacing,
-            };
-            shopInventoryPanel.Children.Add(imageFilePathBox);
-
-            Button addProductButton = new Button
-            {
-                Content = "Add Product To File",
-                Margin = spacing,
-            };
-            shopInventoryPanel.Children.Add(addProductButton);
-            addProductButton.Click += AddProductButton_Click;
-
-            saveChangesButton = new Button
-            {
-                Content = "Save Changes to Product",
-                Margin = spacing,
-                IsEnabled = false,
-                Tag = null,
-            };
-            shopInventoryPanel.Children.Add(saveChangesButton);
-            saveChangesButton.Click += SaveChangesButton_Click;
-
-            return shopInventoryPanel;
+                // Open document
+                imageFileName = dlg.FileName;
+                imageFilePathBox.Text = imageFileName;
+            }
         }
         private void AddProductButton_Click(object sender, RoutedEventArgs e)
         {
@@ -341,23 +358,6 @@ namespace AdminVersion
             else if (nameBox.Text.Contains(",") || descriptionBox.Text.Contains(","))
             {
                 MessageBox.Show("Name or product description can not contain a ','");
-            }
-        }
-        public void UploadImage_Click(object sender, RoutedEventArgs e)
-        {
-            // Configure open file dialog box
-            Microsoft.Win32.OpenFileDialog dlg = new Microsoft.Win32.OpenFileDialog();
-            dlg.FileName = "Document"; // Default file name
-
-            // Show open file dialog box
-            Nullable<bool> result = dlg.ShowDialog();
-
-            // Process open file dialog box results
-            if (result == true)
-            {
-                // Open document
-                imageFileName = dlg.FileName;
-                imageFilePathBox.Text = imageFileName;
             }
         }
         private Image CreateImage(string filePath)
@@ -403,6 +403,14 @@ namespace AdminVersion
             priceBox.Text = product.Price.ToString();
             imageFilePathBox.Text = product.PicturePath;
         }
+        private void DeleteProduct_Click(object sender, RoutedEventArgs e)
+        {
+            //Completely removes a product from the inventory
+            Button button = (Button)sender;
+            var product = (Product)button.Tag;
+            productsList.Remove(product);
+            SaveProductsToFile();
+        }
         private void SaveChangesButton_Click(object sender, RoutedEventArgs e)
         {
             Button button = (Button)sender;
@@ -427,15 +435,7 @@ namespace AdminVersion
                 MessageBox.Show("Name or product description can not contain a ','");
             }
         }
-        private void DeleteProduct_Click(object sender, RoutedEventArgs e)
-        {
-            //Completely removes a product from the inventory
-            Button button = (Button)sender;
-            var product = (Product)button.Tag;
-            productsList.Remove(product);
-            SaveProductsToFile();
-        }
-
+        
         public StackPanel AddDiscountCodePanel()
         {
             StackPanel discountInventoryPanel = new StackPanel
@@ -570,6 +570,8 @@ namespace AdminVersion
             }
             File.WriteAllLines(discountFilePath, discountsList);
             RefreshDiscounts();
+            changeDiscountCode.IsEnabled = false;
+
         }
         private void ChangeDiscountCode_Click(object sender, RoutedEventArgs e)
         {
