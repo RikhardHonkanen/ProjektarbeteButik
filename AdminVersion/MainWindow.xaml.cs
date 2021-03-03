@@ -398,8 +398,12 @@ namespace AdminVersion
             //Completely removes a product from the inventory
             Button button = (Button)sender;
             var product = (Product)button.Tag;
-            productsList.Remove(product);
-            SaveProductsToFile();
+            MessageBoxResult result = MessageBox.Show("Remove \"" + product.Name + "\" From Store, Are You Sure?", "", MessageBoxButton.YesNo);
+            if (result == MessageBoxResult.Yes)
+            {
+                productsList.Remove(product);
+                SaveProductsToFile();                
+            }
         }
         private void SaveProductChanges(object sender, RoutedEventArgs e)
         {
@@ -530,7 +534,7 @@ namespace AdminVersion
             {
                 //Discount converted from a percentage to a multiplier between 0 and 1
                 double discount = 1 - int.Parse(discountPercentage.Text) * 0.01;
-                if (!discountCodeName.Text.Contains(",") && discountCodeName.Text != "" && discount > 0.01 && 1 >= discount)
+                if (!discountCodeName.Text.Contains(",") && discountCodeName.Text != "" && discount >= 0 && 0.99 >= discount)
                 {
                     discountsList.Add(discountCodeName.Text.ToLower() + "," + discount);
                     File.WriteAllLines(discountFilePath, discountsList);
@@ -611,7 +615,7 @@ namespace AdminVersion
                 int index = discountCodes.SelectedIndex;
                 //Discount converted from a percentage to a multiplier between 0 and 1
                 double discount = 1 - int.Parse(discountPercentage.Text) * 0.01;
-                if (!discountCodeName.Text.Contains(",") && discountCodeName.Text != "" && discount > 0.01 && 1 >= discount)
+                if (!discountCodeName.Text.Contains(",") && discountCodeName.Text != "" && discount >= 0 && 0.99 >= discount)
                 {
                     discountsList[index] = discountCodeName.Text.ToLower() + "," + discount;
                     File.WriteAllLines(discountFilePath, discountsList);
