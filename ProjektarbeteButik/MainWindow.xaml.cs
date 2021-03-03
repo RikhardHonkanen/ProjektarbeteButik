@@ -279,7 +279,7 @@ namespace ProjektarbeteButik
         public void AddProducts()
         {
             //Reads inventory from .csv-file and creates a grid for each item. Grid is added to shopInventoryPanel.
-            string[] products = File.ReadAllLines(@"C:\Windows\Temp\ShopInventory.csv");
+            string[] products = File.ReadAllLines(@"C:\Windows\Temp\ProjektarbeteButik\ShopInventory.csv");
             foreach (string s in products)
             {
                 Grid productGrid = new Grid();
@@ -319,11 +319,13 @@ namespace ProjektarbeteButik
                 Grid.SetRow(productLabel, 0);
                 Grid.SetColumn(productLabel, 1);
 
-                Label productDescription = new Label
+                TextBlock productDescription = new TextBlock
                 {
-                    Content = p.Description,
+                    Text = p.Description,
                     FontSize = 12,
-                    FontWeight = FontWeights.Regular,
+                    FontWeight = FontWeights.Normal,
+                    FontStyle = FontStyles.Italic,
+                    TextWrapping = TextWrapping.Wrap
                 };
                 productGrid.Children.Add(productDescription);
                 Grid.SetRow(productDescription, 1);
@@ -399,6 +401,7 @@ namespace ProjektarbeteButik
             {
                 subTotal += item.Key.Price * item.Value;
                 subTotalLabel.Content = "Subtotal: $" + subTotal;
+
                 Grid itemGrid = new Grid();
                 itemGrid.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
                 itemGrid.ColumnDefinitions.Add(new ColumnDefinition());
@@ -581,7 +584,7 @@ namespace ProjektarbeteButik
         }
         private static Dictionary<string, decimal> LoadDiscountCodes()
         {
-            string[] lines = File.ReadAllLines("DiscountCodes.csv");
+            string[] lines = File.ReadAllLines(@"C:\Windows\Temp\ProjektarbeteButik\DiscountCodes.csv");
             var discountCodes = new Dictionary<string, decimal>();
             foreach (string line in lines)
             {
@@ -719,7 +722,7 @@ namespace ProjektarbeteButik
 
                     receiptLabel = new Label
                     {
-                        Content = "Discount: $" + (subTotal - totalCost) + "(" + (int)((1 - discountCodes[couponTextBox.Text.ToLower()]) * 100) +" %)"
+                        Content = "Discount: $" + (subTotal - totalCost) + " (" + (int)((1 - discountCodes[couponTextBox.Text.ToLower()]) * 100) +"%)"
                     };
                     receiptPanel.Children.Add(receiptLabel);
                     Grid.SetRow(receiptLabel, 7);
@@ -748,7 +751,7 @@ namespace ProjektarbeteButik
         }
         private Image CreateImage(string filePath)
         {
-            ImageSource source = new BitmapImage(new Uri(filePath, UriKind.Relative));
+            ImageSource source = new BitmapImage(new Uri(filePath, UriKind.Absolute));
             Image image = new Image
             {
                 Margin = spacing,
