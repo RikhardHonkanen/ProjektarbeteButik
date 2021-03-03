@@ -557,7 +557,6 @@ namespace AdminVersion
             {
                 MessageBox.Show("Discount Name Can Not Be Empty");
             }
-            changeDiscountCode.IsEnabled = false;
         }
         private void DeleteDiscountCode(object sender, RoutedEventArgs e)
         {
@@ -582,6 +581,7 @@ namespace AdminVersion
             discountCodes.Items.Clear();
             discountCodeName.Clear();
             discountPercentage.Clear();
+            changeDiscountCode.IsEnabled = false;
             foreach (string s in discountsList)
             {
                 string[] parts = s.Split(",");
@@ -592,6 +592,7 @@ namespace AdminVersion
         }
         private void DiscountCodes_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
+            changeDiscountCode.IsEnabled = true;
             //Added try-catch, program crashed on ListBox being updated otherwise
             try
             {
@@ -632,7 +633,6 @@ namespace AdminVersion
             {
                 MessageBox.Show("Discount Name Can Not Be Empty");
             }
-            changeDiscountCode.IsEnabled = false;
         }
         private Image CreateImage(string filePath)
         {
