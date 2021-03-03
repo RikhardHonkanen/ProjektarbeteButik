@@ -36,7 +36,7 @@ namespace AdminVersion
         public Button saveChangesButton;
         public Button changeDiscountCode;
         public List<string> discountsList = new List<string>();
-        public List<Product> productsList = new List<Product>();        
+        public List<Product> productsList = new List<Product>();
 
         public MainWindow()
         {
@@ -48,13 +48,13 @@ namespace AdminVersion
         private void Start()
         {
             // Window options
-            Title = "GUI App";
+            Title = "The Wonderful Items Shoppe - Admin";
             Height = 900;
             Width = 900;
-            WindowStartupLocation = WindowStartupLocation.CenterScreen;            
+            WindowStartupLocation = WindowStartupLocation.CenterScreen;
 
             // Main grid
-            Grid grid = new Grid();            
+            Grid grid = new Grid();
             grid.Margin = spacing;
             grid.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
             grid.RowDefinitions.Add(new RowDefinition());
@@ -62,19 +62,22 @@ namespace AdminVersion
             grid.ColumnDefinitions.Add(new ColumnDefinition());
             grid.ColumnDefinitions.Add(new ColumnDefinition());
             Content = grid;
-
+            
+            //Add Products (Top Left)
             StackPanel productAddPanel = AddProductPanel();
             grid.Children.Add(productAddPanel);
             Grid.SetColumn(productAddPanel, 0);
             Grid.SetRow(productAddPanel, 0);
             Grid.SetRowSpan(productAddPanel, 2);
-
+            
+            //Add Discounts (Top Right)
             StackPanel discountCodePanel = AddDiscountCodePanel();
             grid.Children.Add(discountCodePanel);
             Grid.SetColumn(discountCodePanel, 1);
             Grid.SetRow(discountCodePanel, 0);
             Grid.SetRowSpan(discountCodePanel, 2);
 
+            //Scrolling for shop products list (Bottom Left)
             ScrollViewer inventoryScroller = new ScrollViewer();
             grid.Children.Add(inventoryScroller);
             Grid.SetColumn(inventoryScroller, 0);
@@ -82,21 +85,24 @@ namespace AdminVersion
             inventoryScroller.VerticalScrollBarVisibility = ScrollBarVisibility.Auto;
             inventoryScroller.CanContentScroll = true;
 
+            //Panel connected to ScrollViewer
             StackPanel shopInventory = CreateShopInventoryPanel();
             inventoryScroller.Content = shopInventory;
 
+            //ListBox with existing discounts (Bottom Right)
             discountCodes = new ListBox { Margin = spacing };
             grid.Children.Add(discountCodes);
             Grid.SetColumn(discountCodes, 1);
             Grid.SetRow(discountCodes, 2);
             discountCodes.SelectionChanged += DiscountCodes_SelectionChanged;
 
+            //Products loaded from .csv-file
             LoadProducts();
+            //Discounts loaded from .csv-file
             LoadDiscounts();
-        }        
-
+        }
         public StackPanel AddProductPanel()
-        {
+        {            
             StackPanel shopInventoryPanel = new StackPanel
             {
                 Margin = spacing,
@@ -186,7 +192,7 @@ namespace AdminVersion
                 Tag = null,
             };
             shopInventoryPanel.Children.Add(saveChangesButton);
-            saveChangesButton.Click += SaveChangesButton_Click;
+            saveChangesButton.Click += SaveProductChanges;
 
             return shopInventoryPanel;
         }
@@ -196,7 +202,7 @@ namespace AdminVersion
             {
                 Margin = spacing,
                 Orientation = Orientation.Vertical,
-                Background = Brushes.OldLace                
+                Background = Brushes.OldLace
             };
 
             Label shopInventoryLabel = new Label
@@ -212,6 +218,7 @@ namespace AdminVersion
         }
         public void LoadProducts()
         {
+            //Method used to refresh the GUI whenever changes are saved, and on start-up
             shopInventoryPanel.Children.Clear();
             productsList.Clear();
             saveChangesButton.IsEnabled = false;
@@ -257,7 +264,8 @@ namespace AdminVersion
                         Grid.SetColumn(productImage, 0);
                     }
                     catch
-                    {
+                    {      
+                        //Default image used if image path is invalid/missing
                         Image productImage = CreateImage(@"C:\Windows\Temp\ProjektarbeteButik\ProjektarbeteButikImages\no-photo.jpg");
                         productImage.Stretch = Stretch.Fill;
                         productGrid.Children.Add(productImage);
@@ -322,29 +330,22 @@ namespace AdminVersion
                     productGrid.Children.Add(changeContentButton);
                     Grid.SetRow(changeContentButton, 1);
                     Grid.SetColumn(changeContentButton, 4);
-                    changeContentButton.Click += ChangeContentButton_Click;
+                    changeContentButton.Click += ChangeProductContent;
                 }
             }
         }
         public void UploadImage_Click(object sender, RoutedEventArgs e)
         {
-            // Configure open file dialog box
+            //Allows user to select an image with File Explorer
             Microsoft.Win32.OpenFileDialog dlg = new Microsoft.Win32.OpenFileDialog();
-            dlg.FileName = "Document"; // Default file name
-
-            // Show open file dialog box
+            dlg.FileName = "Document"; 
+            
             Nullable<bool> result = dlg.ShowDialog();
-
-            // Process open file dialog box results
             if (result == true)
             {
-                // Open document
                 imageFileName = dlg.FileName;
                 imageFilePathBox.Text = imageFileName;
             }
-            //string[] pathParts = imageFileName.Split(@"\");
-            //string imageToDirectory = @"C:\Windows\Temp\ProjektarbeteButik\ProjektarbeteButikImages\" + pathParts.Last();
-            //File.Copy(imageFileName, imageToDirectory);
         }
         private void AddProductButton_Click(object sender, RoutedEventArgs e)
         {
@@ -381,6 +382,7 @@ namespace AdminVersion
         }
         public void SaveProductsToFile()
         {
+            //Changes saved to .csv-file and GUI is cleared
             List<string> productsToFileList = new List<string>();
             foreach (var i in productsList)
             {
@@ -393,8 +395,9 @@ namespace AdminVersion
             imageFilePathBox.Text = "";
             LoadProducts();
         }
-        private void ChangeContentButton_Click(object sender, RoutedEventArgs e)
+        private void ChangeProductContent(object sender, RoutedEventArgs e)
         {
+            //Moves information of selected product to corresponding GUI elements
             Button button = (Button)sender;
             var product = (Product)button.Tag;
             saveChangesButton.IsEnabled = true;
@@ -413,8 +416,9 @@ namespace AdminVersion
             productsList.Remove(product);
             SaveProductsToFile();
         }
-        private void SaveChangesButton_Click(object sender, RoutedEventArgs e)
+        private void SaveProductChanges(object sender, RoutedEventArgs e)
         {
+            //Edits an existing product in productsList and saves changes to .csv-file
             Button button = (Button)sender;
             var product = (Product)button.Tag;
             bool errorHandling = decimal.TryParse(priceBox.Text, out decimal result);
@@ -539,11 +543,19 @@ namespace AdminVersion
 
             if (errorHandling == true && !discountCodeName.Text.Contains(",") && discountCodeName.Text != "")
             {
+                //Discount converted from a percentage to a multiplier between 0 and 1
                 double discount = 1 - double.Parse(discountPercentage.Text) * 0.01;
-                discountsList.Add(discountCodeName.Text.ToLower() + "," + discount);
-                File.WriteAllLines(discountFilePath, discountsList);
-                RefreshDiscounts();
-                MessageBox.Show("Discount Code Added To Inventory");
+                if (discount > 0.01 && 1 >= discount)
+                {
+                    discountsList.Add(discountCodeName.Text.ToLower() + "," + discount);
+                    File.WriteAllLines(discountFilePath, discountsList);
+                    RefreshDiscounts();
+                    MessageBox.Show("Discount Code Added To Inventory");
+                }
+                else
+                {
+                    MessageBox.Show("Discount must be between 1 and 100%");
+                }
             }
             else if (errorHandling == false)
             {
@@ -560,10 +572,6 @@ namespace AdminVersion
         }
         private void DeleteDiscountCode(object sender, RoutedEventArgs e)
         {
-            if (discountCodes.SelectedIndex == -1)
-            {
-
-            }
             int index = discountCodes.SelectedIndex;
             try
             {
@@ -578,6 +586,7 @@ namespace AdminVersion
         }
         public void RefreshDiscounts()
         {
+            //Refreshes the GUI whenever changes are made to Discount Codes
             discountCodes.Items.Clear();
             discountCodeName.Clear();
             discountPercentage.Clear();
@@ -586,7 +595,7 @@ namespace AdminVersion
             {
                 string[] parts = s.Split(",");
                 double display = Math.Round((1 - double.Parse(parts[1])) * 100);
-                string displayDiscount = "Code: " + parts[0] + " Discount: " + display + "%";
+                string displayDiscount = "Code: " + parts[0] + " - " + " Discount: " + display + "%";
                 discountCodes.Items.Add(displayDiscount);
             }
         }
@@ -616,10 +625,17 @@ namespace AdminVersion
             {
                 int index = discountCodes.SelectedIndex;
                 double discount = 1 - double.Parse(discountPercentage.Text) * 0.01;
-                discountsList[index] = discountCodeName.Text.ToLower() + "," + discount;
-                File.WriteAllLines(discountFilePath, discountsList);
-                RefreshDiscounts();
-                MessageBox.Show("Discount Code Added To Inventory");
+                if (discount > 0.01 && 1 >= discount)
+                {
+                    discountsList[index] = discountCodeName.Text.ToLower() + "," + discount;
+                    File.WriteAllLines(discountFilePath, discountsList);
+                    RefreshDiscounts();
+                    MessageBox.Show("Saved changes to Discount Code");
+                }
+                else
+                {
+                    MessageBox.Show("Discount must be between 1 and 100%");
+                }
             }
             else if (errorHandling == false)
             {
