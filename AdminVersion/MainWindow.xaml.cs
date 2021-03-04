@@ -49,7 +49,7 @@ namespace AdminVersion
             // Window options
             Title = "The Wonderful Items Shoppe - Admin";
             Height = 900;
-            Width = 900;
+            Width = 1000;
             WindowStartupLocation = WindowStartupLocation.CenterScreen;
 
             // Main grid
@@ -309,7 +309,7 @@ namespace AdminVersion
 
                     Button changeContentButton = new Button
                     {
-                        Content = "Change Content",
+                        Content = "Edit Content",
                         Margin = spacing,
                         Padding = spacing,
                         Tag = p,
