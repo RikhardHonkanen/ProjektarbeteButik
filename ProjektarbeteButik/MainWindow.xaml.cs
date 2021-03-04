@@ -36,7 +36,7 @@ namespace ProjektarbeteButik
     {
         //Instance variables further explained later (where necessary)
         public Thickness spacing = new Thickness(5);
-        public const string cartFilePath = @"C:\Windows\Temp\ProjektarbeteButik\TheExcellentCart.csv";
+        public const string cartFilePath = @"C:\Windows\Temp\The Wonderful Items Shoppe\TheExcellentCart.csv";
         public StackPanel shopInventoryPanel;
         public StackPanel cartInventoryPanel;
         public StackPanel receiptPanel;
@@ -83,6 +83,9 @@ namespace ProjektarbeteButik
             mainGrid.RowDefinitions.Add(new RowDefinition());
             mainGrid.ColumnDefinitions.Add(new ColumnDefinition());
             mainGrid.ColumnDefinitions.Add(new ColumnDefinition());
+
+            //Example data is set up on first time launch
+            DataSetup();
 
             //Shop Inventory (Left side)
             StackPanel shopInventory = CreateShopInventoryPanel();
@@ -279,7 +282,7 @@ namespace ProjektarbeteButik
         public void AddProducts()
         {
             //Reads inventory from .csv-file and creates a grid for each item. Grid is added to shopInventoryPanel.
-            string[] products = File.ReadAllLines(@"C:\Windows\Temp\ProjektarbeteButik\ShopInventory.csv");
+            string[] products = File.ReadAllLines(@"C:\Windows\Temp\The Wonderful Items Shoppe\ShopInventory.csv");
             foreach (string s in products)
             {
                 Grid productGrid = new Grid();
@@ -584,7 +587,7 @@ namespace ProjektarbeteButik
         }
         private static Dictionary<string, decimal> LoadDiscountCodes()
         {
-            string[] lines = File.ReadAllLines(@"C:\Windows\Temp\ProjektarbeteButik\DiscountCodes.csv");
+            string[] lines = File.ReadAllLines(@"C:\Windows\Temp\The Wonderful Items Shoppe\DiscountCodes.csv");
             var discountCodes = new Dictionary<string, decimal>();
             foreach (string line in lines)
             {
@@ -747,6 +750,20 @@ namespace ProjektarbeteButik
                 File.Delete(cartFilePath);
                 UpdateCart();
                 generatedReceipt = true;
+            }
+        }
+        public static void DataSetup()
+        {
+            if (!Directory.Exists(@"C:\Windows\Temp\The Wonderful Items Shoppe\"))
+            {
+                Directory.CreateDirectory(@"C:\Windows\Temp\The Wonderful Items Shoppe\ProjektarbeteButikImages\");
+                string[] images = Directory.GetFiles("ProjektarbeteButikImages");
+                foreach (string s in images)
+                {
+                    File.Copy(s, @"C:\Windows\Temp\The Wonderful Items Shoppe\" + s);
+                }
+                File.Copy("DiscountCodes.csv", @"C:\Windows\Temp\The Wonderful Items Shoppe\DiscountCodes.csv");
+                File.Copy("ShopInventory.csv", @"C:\Windows\Temp\The Wonderful Items Shoppe\ShopInventory.csv");
             }
         }
         private Image CreateImage(string filePath)

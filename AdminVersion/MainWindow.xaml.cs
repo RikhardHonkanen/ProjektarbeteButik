@@ -21,9 +21,9 @@ namespace AdminVersion
     public partial class MainWindow : Window
     {
         public Thickness spacing = new Thickness(5);
-        public const string productFilePath = @"C:\Windows\Temp\ProjektarbeteButik\ShopInventory.csv";
-        public const string imageFilePath = @"C:\Windows\Temp\ProjektarbeteButik\ProjektarbeteButikImages\";
-        public const string discountFilePath = @"C:\Windows\Temp\ProjektarbeteButik\DiscountCodes.csv";
+        public const string productFilePath = @"C:\Windows\Temp\The Wonderful Items Shoppe\ShopInventory.csv";
+        public const string imageFilePath = @"C:\Windows\Temp\The Wonderful Items Shoppe\ProjektarbeteButikImages\";
+        public const string discountFilePath = @"C:\Windows\Temp\The Wonderful Items Shoppe\DiscountCodes.csv";
         public TextBox nameBox;
         public TextBox descriptionBox;
         public TextBox priceBox;
@@ -61,6 +61,9 @@ namespace AdminVersion
             grid.ColumnDefinitions.Add(new ColumnDefinition());
             grid.ColumnDefinitions.Add(new ColumnDefinition());
             Content = grid;
+
+            //Example data is set up on first time launch
+            ProjektarbeteButik.MainWindow.DataSetup();
 
             //Add Products (Top Left)
             StackPanel productAddPanel = AddProductPanel();
