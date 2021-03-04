@@ -320,6 +320,7 @@ namespace ProjektarbeteButik
                 };
                 productGrid.Children.Add(productLabel);
                 Grid.SetRow(productLabel, 0);
+                Grid.SetColumnSpan(productLabel, 3);
                 Grid.SetColumn(productLabel, 1);
 
                 TextBlock productDescription = new TextBlock
