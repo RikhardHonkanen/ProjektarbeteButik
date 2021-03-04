@@ -5,4 +5,23 @@
     <TargetFramework>netcoreapp3.1</TargetFramework>
     <UseWPF>true</UseWPF>
   </PropertyGroup>
+	<ItemGroup>
+		<Content Include="ProjektarbeteButikImages\**">
+			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
+		</Content>
+	</ItemGroup>
+
+  <ItemGroup>
+    <None Remove="DiscountCodes.csv" />
+    <None Remove="ShopInventory.csv" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Include="DiscountCodes.csv">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="ShopInventory.csv">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
 </Project>
