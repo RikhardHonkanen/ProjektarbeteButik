@@ -351,24 +351,24 @@ namespace AdminVersion
                     };
                     productsList.Add(newProduct);
                     SaveProductsToFile();
-                    MessageBox.Show("Product Added To Inventory");
+                    MessageBox.Show("Product added to inventory");
                 }
                 else if (nameBox.Text == "")
                 {
-                    MessageBox.Show("Please enter a product name");
+                    MessageBox.Show("Please enter a Product Name");
                 }
                 else if (descriptionBox.Text == "")
                 {
-                    MessageBox.Show("Please enter a product description");
+                    MessageBox.Show("Please enter a Product Description");
                 }
                 else
                 {
-                    MessageBox.Show("Name or product description can not contain a ','");
+                    MessageBox.Show("Name or Product Description can not contain a \",");
                 }
             }
             else
             {
-                MessageBox.Show("Price Is Not In Correct Format");
+                MessageBox.Show("Price is not in correct format");
             }
         }
         public void SaveProductsToFile()
@@ -405,7 +405,7 @@ namespace AdminVersion
             //Completely removes a product from the inventory
             Button button = (Button)sender;
             var product = (Product)button.Tag;
-            MessageBoxResult result = MessageBox.Show("Remove \"" + product.Name + "\" From Store, Are You Sure?", "", MessageBoxButton.YesNo);
+            MessageBoxResult result = MessageBox.Show("Remove \"" + product.Name + "\" from store, are you sure?", "", MessageBoxButton.YesNo);
             if (result == MessageBoxResult.Yes)
             {
                 productsList.Remove(product);
@@ -435,12 +435,12 @@ namespace AdminVersion
                 }
                 else
                 {
-                    MessageBox.Show("Name or product description can not contain a ','");
+                    MessageBox.Show("Name or Product Description can not contain a \",");
                 }
             }
             else
             {
-                MessageBox.Show("Price Is Not In Correct Format");
+                MessageBox.Show("Price is not in correct format");
             }
         }
         public StackPanel AddDiscountCodePanel()
@@ -546,15 +546,15 @@ namespace AdminVersion
                     discountsList.Add(discountCodeName.Text.ToLower() + "," + discount);
                     File.WriteAllLines(discountFilePath, discountsList);
                     RefreshDiscounts();
-                    MessageBox.Show("Discount Code Added To Inventory");                    
+                    MessageBox.Show("Discount code added to inventory");                    
                 }
                 else if (discountCodeName.Text.Contains(","))
                 {
-                    MessageBox.Show("Discount Code Name Can Not Contain ','");
+                    MessageBox.Show("Discount Code Name can not contain \",");
                 }
                 else if (discountCodeName.Text == "")
                 {
-                    MessageBox.Show("Discount Name Can Not Be Empty");
+                    MessageBox.Show("Discount Name can not be empty");
                 }
                 else
                 {
@@ -563,7 +563,7 @@ namespace AdminVersion
             }
             else
             {
-                MessageBox.Show("Discount Percentage must be an integer between 1 and 100");
+                MessageBox.Show("Discount Percentage must be an whole number between 1 and 100");
             }
         }
         private void DeleteDiscountCode(object sender, RoutedEventArgs e)
@@ -571,7 +571,7 @@ namespace AdminVersion
             int index = discountCodes.SelectedIndex;
             try
             {
-                MessageBoxResult result = MessageBox.Show("Remove \"" + discountCodeName.Text + "\" From Store, Are You Sure?", "", MessageBoxButton.YesNo);
+                MessageBoxResult result = MessageBox.Show("Remove \"" + discountCodeName.Text + "\" from store, are you sure?", "", MessageBoxButton.YesNo);
                 if (result == MessageBoxResult.Yes)
                 {
                     discountsList.RemoveAt(index); 
@@ -579,7 +579,7 @@ namespace AdminVersion
             }
             catch
             {
-                MessageBox.Show("No discount code selected");
+                MessageBox.Show("No Discount Code selected");
             }
             File.WriteAllLines(discountFilePath, discountsList);
             RefreshDiscounts();
@@ -635,20 +635,20 @@ namespace AdminVersion
                 }
                 else if (discountCodeName.Text.Contains(","))
                 {
-                    MessageBox.Show("Discount Code Name Can Not Contain ','");
+                    MessageBox.Show("Discount Code Name can not contain \",");
                 }
                 else if (discountCodeName.Text == "")
                 {
-                    MessageBox.Show("Discount Name Can Not Be Empty");
+                    MessageBox.Show("Discount Name can not be empty");
                 }
                 else
                 {
-                    MessageBox.Show("Discount must be between 1 and 100%");
+                    MessageBox.Show("Discount must be a whole number between 1 and 100%");
                 }
             }
             else
             {
-                MessageBox.Show("Discount Percentage must be an integer between 1 and 100");
+                MessageBox.Show("Discount must be a whole number between 1 and 100%");
             }
         }
         private Image CreateImage(string filePath)
