@@ -409,11 +409,11 @@ namespace ProjektarbeteButik
                 Grid itemGrid = new Grid();
                 itemGrid.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
                 itemGrid.ColumnDefinitions.Add(new ColumnDefinition());
-                itemGrid.ColumnDefinitions.Add(new ColumnDefinition());
-                itemGrid.ColumnDefinitions.Add(new ColumnDefinition());
                 itemGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
                 itemGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
-                itemGrid.ColumnDefinitions.Add(new ColumnDefinition());
+                itemGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
+                itemGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
+                itemGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
                 if (counter % 2 == 0)
                 {
                     itemGrid.Background = Brushes.AntiqueWhite;
@@ -750,6 +750,7 @@ namespace ProjektarbeteButik
                 shoppingCart.Clear();
                 File.Delete(cartFilePath);
                 UpdateCart();
+                couponTextBox.Text = "";
                 generatedReceipt = true;
             }
         }
