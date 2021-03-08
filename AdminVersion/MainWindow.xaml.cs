@@ -342,6 +342,10 @@ namespace AdminVersion
             {
                 if (nameBox.Text != "" && descriptionBox.Text != "" && !nameBox.Text.Contains(",") && !descriptionBox.Text.Contains(","))
                 {
+                    if (!priceBox.Text.Contains('.'))
+                    {
+                        priceBox.Text += ".00";
+                    }
                     Product newProduct = new Product
                     {
                         Name = nameBox.Text,
@@ -351,7 +355,7 @@ namespace AdminVersion
                     };
                     productsList.Add(newProduct);
                     SaveProductsToFile();
-                    MessageBox.Show("Product Added To Inventory");
+                    MessageBox.Show("Product added to inventory");
                 }
                 else if (nameBox.Text == "")
                 {
@@ -363,12 +367,12 @@ namespace AdminVersion
                 }
                 else
                 {
-                    MessageBox.Show("Name or product description can not contain a ','");
+                    MessageBox.Show("Name or product description can not contain a \",\"");
                 }
             }
             else
             {
-                MessageBox.Show("Price Is Not In Correct Format");
+                MessageBox.Show("Price is not in correct format");
             }
         }
         public void SaveProductsToFile()
@@ -424,6 +428,10 @@ namespace AdminVersion
                 {
                     product.Name = nameBox.Text;
                     product.Description = descriptionBox.Text;
+                    if (!priceBox.Text.Contains('.'))
+                    {
+                        priceBox.Text += ".00";
+                    }
                     product.Price = decimal.Parse(priceBox.Text);
                     product.PicturePath = imageFilePathBox.Text;
                     SaveProductsToFile();
