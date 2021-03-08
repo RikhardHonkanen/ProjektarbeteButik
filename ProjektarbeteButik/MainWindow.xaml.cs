@@ -70,41 +70,52 @@ namespace ProjektarbeteButik
             Height = 800;
             WindowStartupLocation = WindowStartupLocation.CenterScreen;
 
-            // Scrolling
-            ScrollViewer root = new ScrollViewer();
-            root.VerticalScrollBarVisibility = ScrollBarVisibility.Auto;
-            Content = root;
-
             // Main grid
             Grid mainGrid = new Grid();
-            root.Content = mainGrid;
             mainGrid.Margin = spacing;
             mainGrid.RowDefinitions.Add(new RowDefinition());
             mainGrid.RowDefinitions.Add(new RowDefinition());
             mainGrid.ColumnDefinitions.Add(new ColumnDefinition());
             mainGrid.ColumnDefinitions.Add(new ColumnDefinition());
+            Content = mainGrid;
 
             //Example data is set up on first time launch
             DataSetup();
 
             //Shop Inventory (Left side)
+            ScrollViewer inventoryScroller = new ScrollViewer();
+            mainGrid.Children.Add(inventoryScroller);
+            Grid.SetColumn(inventoryScroller, 0);
+            Grid.SetRow(inventoryScroller, 0);
+            Grid.SetRowSpan(inventoryScroller, 2);
+            inventoryScroller.VerticalScrollBarVisibility = ScrollBarVisibility.Auto;
+            inventoryScroller.CanContentScroll = true;
+
             StackPanel shopInventory = CreateShopInventoryPanel();
-            mainGrid.Children.Add(shopInventory);
-            Grid.SetColumn(shopInventory, 0);
-            Grid.SetRow(shopInventory, 0);
-            Grid.SetRowSpan(shopInventory, 2);
+            inventoryScroller.Content = shopInventory;
 
             //Shopping Cart (Top Right side)
+            ScrollViewer cartScroller = new ScrollViewer();
+            mainGrid.Children.Add(cartScroller);
+            Grid.SetColumn(cartScroller, 1);
+            Grid.SetRow(cartScroller, 0);
+            cartScroller.VerticalScrollBarVisibility = ScrollBarVisibility.Auto;
+            cartScroller.CanContentScroll = true;
+
             Grid shoppingCartGrid = CreateCartGrid();
-            mainGrid.Children.Add(shoppingCartGrid);
-            Grid.SetColumn(shoppingCartGrid, 1);
-            Grid.SetRow(shoppingCartGrid, 0);
+            cartScroller.Content = shoppingCartGrid;
 
             //Check Out (Bottom Right side)
+            ScrollViewer receiptScroller = new ScrollViewer();
+            mainGrid.Children.Add(receiptScroller);
+            Grid.SetColumn(receiptScroller, 1);
+            Grid.SetRow(receiptScroller, 1);
+            receiptScroller.VerticalScrollBarVisibility = ScrollBarVisibility.Auto;
+            receiptScroller.CanContentScroll = true;
+
             Grid checkOutGrid = CreateCheckOutGrid();
-            mainGrid.Children.Add(checkOutGrid);
-            Grid.SetColumn(checkOutGrid, 1);
-            Grid.SetRow(checkOutGrid, 1);
+            receiptScroller.Content = checkOutGrid;
+
 
             //Cart is loaded from .csv-file.
             shoppingCart = LoadCart(productsList, cartFilePath);
@@ -322,6 +333,7 @@ namespace ProjektarbeteButik
                 Grid.SetRow(productLabel, 0);
                 Grid.SetColumnSpan(productLabel, 3);
                 Grid.SetColumn(productLabel, 1);
+                Grid.SetColumnSpan(productLabel, 3);
 
                 TextBlock productDescription = new TextBlock
                 {
