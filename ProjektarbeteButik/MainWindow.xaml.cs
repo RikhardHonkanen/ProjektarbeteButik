@@ -567,21 +567,31 @@ namespace ProjektarbeteButik
             }
             else
             {
-                string[] lines = File.ReadAllLines(cartFilePath);
-                foreach (string line in lines)
+                //try-catch because loading cart may crash the program if changes to Products have been made
+                try
                 {
-                    string[] parts = line.Split(',');
-                    string name = parts[0];
-                    int amount = int.Parse(parts[1]);
-                    Product current = null;
-                    foreach (Product p in productsList)
+                    string[] lines = File.ReadAllLines(cartFilePath);
+                    foreach (string line in lines)
                     {
-                        if (p.Name == name)
+                        string[] parts = line.Split(',');
+                        string name = parts[0];
+                        int amount = int.Parse(parts[1]);
+                        Product current = null;
+                        foreach (Product p in productsList)
                         {
-                            current = p;
+                            if (p.Name == name)
+                            {
+                                current = p;
+                            }
                         }
+                        shoppingCart[current] = amount;
                     }
-                    shoppingCart[current] = amount;
+                }
+                catch
+                {
+                    File.Delete(cartFilePath);
+                    shoppingCart.Clear();
+                    MessageBox.Show("Sorry, something went wrong while loading Shopping Cart");
                 }
             }
             return shoppingCart;
