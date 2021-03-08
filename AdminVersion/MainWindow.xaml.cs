@@ -353,9 +353,13 @@ namespace AdminVersion
                     SaveProductsToFile();
                     MessageBox.Show("Product Added To Inventory");
                 }
-                else if (nameBox.Text == "" || descriptionBox.Text == "")
+                else if (nameBox.Text == "")
                 {
-                    MessageBox.Show("Please enter Name and Description");
+                    MessageBox.Show("Please enter a product name");
+                }
+                else if (descriptionBox.Text == "")
+                {
+                    MessageBox.Show("Please enter a product description");
                 }
                 else
                 {
@@ -567,7 +571,11 @@ namespace AdminVersion
             int index = discountCodes.SelectedIndex;
             try
             {
-                discountsList.RemoveAt(index);
+                MessageBoxResult result = MessageBox.Show("Remove \"" + discountCodeName.Text + "\" From Store, Are You Sure?", "", MessageBoxButton.YesNo);
+                if (result == MessageBoxResult.Yes)
+                {
+                    discountsList.RemoveAt(index); 
+                }
             }
             catch
             {
