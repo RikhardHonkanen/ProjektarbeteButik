@@ -109,7 +109,7 @@ namespace AdminVersion
             LoadDiscounts();
         }
         public StackPanel AddProductPanel()
-        {            
+        {
             StackPanel addProductPanel = new StackPanel
             {
                 Margin = spacing,
@@ -377,7 +377,7 @@ namespace AdminVersion
         }
         public void SaveProductsToFile()
         {
-            //Changes saved to .csv-file and GUI is cleared
+            //Changes saved to .csv-file and GUI is refreshed
             List<string> productsToFileList = new List<string>();
             foreach (var i in productsList)
             {
@@ -413,7 +413,7 @@ namespace AdminVersion
             if (result == MessageBoxResult.Yes)
             {
                 productsList.Remove(product);
-                SaveProductsToFile();                
+                SaveProductsToFile();
             }
         }
         private void SaveProductChanges(object sender, RoutedEventArgs e)
@@ -554,7 +554,7 @@ namespace AdminVersion
                     discountsList.Add(discountCodeName.Text.ToLower() + "," + discount);
                     File.WriteAllLines(discountFilePath, discountsList);
                     RefreshDiscounts();
-                    MessageBox.Show("Discount code added to inventory");                    
+                    MessageBox.Show("Discount code added to inventory");
                 }
                 else if (discountCodeName.Text.Contains(","))
                 {
@@ -582,7 +582,7 @@ namespace AdminVersion
                 MessageBoxResult result = MessageBox.Show("Remove \"" + discountCodeName.Text + "\" from store, are you sure?", "", MessageBoxButton.YesNo);
                 if (result == MessageBoxResult.Yes)
                 {
-                    discountsList.RemoveAt(index); 
+                    discountsList.RemoveAt(index);
                 }
             }
             catch
@@ -628,7 +628,7 @@ namespace AdminVersion
         {
             // Error handling to make sure the user inputs the discount percentage as an int
             bool errorHandling = int.TryParse(discountPercentage.Text, out int result);
-            
+
             if (errorHandling)
             {
                 int index = discountCodes.SelectedIndex;

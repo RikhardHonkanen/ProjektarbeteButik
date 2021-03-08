@@ -53,7 +53,6 @@ namespace ProjektarbeteButik
         public Label receiptLabel;
         public bool acceptedDiscountCode;
         public bool generatedReceipt;
-        public decimal discountAmount;
         public Dictionary<string, decimal> discountCodes = new Dictionary<string, decimal>();
 
         public MainWindow()
@@ -116,14 +115,13 @@ namespace ProjektarbeteButik
             Grid checkOutGrid = CreateCheckOutGrid();
             receiptScroller.Content = checkOutGrid;
 
-
             //Cart is loaded from .csv-file.
             shoppingCart = LoadCart(productsList, cartFilePath);
 
             //Valid discount codes read from .csv-file and stored in dictionary for later use.
             discountCodes = LoadDiscountCodes();
 
-            //This method is used in several places to refresh the GUI.
+            //This method is used in several places to refresh the GUI (here to display saved cart).
             UpdateCart();
         }
         public StackPanel CreateShopInventoryPanel()
@@ -331,7 +329,6 @@ namespace ProjektarbeteButik
                 };
                 productGrid.Children.Add(productLabel);
                 Grid.SetRow(productLabel, 0);
-                Grid.SetColumnSpan(productLabel, 3);
                 Grid.SetColumn(productLabel, 1);
                 Grid.SetColumnSpan(productLabel, 3);
 
@@ -486,7 +483,7 @@ namespace ProjektarbeteButik
                 };
                 itemGrid.Children.Add(increaseAmount);
                 Grid.SetColumn(increaseAmount, 4);
-                increaseAmount.Click += IncreaseItemAmount; ;
+                increaseAmount.Click += IncreaseItemAmount;
 
                 Button deleteFromCart = new Button
                 {
@@ -567,7 +564,7 @@ namespace ProjektarbeteButik
             }
             else
             {
-                //try-catch because loading cart may crash the program if changes to Products have been made
+                //try-catch because loading cart may crash the program if changes to Products have been made in Admin
                 try
                 {
                     string[] lines = File.ReadAllLines(cartFilePath);
@@ -602,9 +599,7 @@ namespace ProjektarbeteButik
             List<string> linesList = new List<string>();
             foreach (KeyValuePair<Product, int> pair in shoppingCart)
             {
-                Product p = pair.Key;
-                int amount = pair.Value;
-                linesList.Add(p.Name + "," + amount);
+                linesList.Add(pair.Key.Name + "," + pair.Value);
             }
             File.WriteAllLines(cartFilePath, linesList);
         }
@@ -630,7 +625,7 @@ namespace ProjektarbeteButik
             acceptedDiscountCode = CheckIfCodeIsValid(discountCodes, input);
             if (acceptedDiscountCode)
             {
-                discountAmount = discountCodes[input];
+                decimal discountAmount = discountCodes[input];
                 totalCost = CalculateTotalCost(discountAmount, subTotal);
                 MessageBox.Show("Discount " + (int)((1 - discountAmount) * 100) + "%. Total for this order: $" + totalCost);
                 totalCostLabel.Content = "Total (with discount): $" + totalCost;
@@ -716,14 +711,14 @@ namespace ProjektarbeteButik
 
                 foreach (KeyValuePair<Product, int> pair in shoppingCart)
                 {
-                    Receipt kvitto = new Receipt
+                    Receipt receipt = new Receipt
                     {
                         Name = pair.Key.Name,
                         Amount = pair.Value,
                         Price = pair.Key.Price,
                         TotalPrice = pair.Value * pair.Key.Price,
                     };
-                    receiptGrid.Items.Add(kvitto);
+                    receiptGrid.Items.Add(receipt);
                 }
 
                 if (acceptedDiscountCode == true)
